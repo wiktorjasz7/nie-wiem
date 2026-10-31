@@ -16,6 +16,7 @@ function App() {
   });
   const [name, setName] = useState("");
   const [avatar, setAvatar] = useState(() => { try { return localStorage.getItem("nie-wiem-avatar") || "😎"; } catch { return "😎"; } });
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [code, setCode] = useState(() => new URLSearchParams(window.location.search).get("room")?.toUpperCase() || "");
   const [category, setCategory] = useState("Mieszane");
   const [custom, setCustom] = useState("");
@@ -270,8 +271,13 @@ const advance = async (correct) => {
               <div className="profile-preview"><span className="profile-preview-avatar">{avatar}</span><span><small>TWÓJ PROFIL</small><strong>{name.trim() || "Gracz"}</strong></span></div>
             </div>
             <aside className="avatar-side-panel">
-              <div className="avatar-panel-heading"><span>WYBIERZ AWATAR</span><small>{AVATARS.length} DO WYBORU</small></div>
-              <select className="avatar-select" aria-label="Wybierz awatar" value={avatar} onChange={e=>setAvatar(e.target.value)}>{AVATARS.map(item => <option key={item} value={item}>{item}</option>)}</select>
+              <button type="button" className="avatar-picker-toggle" aria-expanded={avatarPickerOpen} onClick={()=>setAvatarPickerOpen(open=>!open)}>
+                <span className="avatar-panel-heading"><span>WYBIERZ AWATAR</span><small>{AVATARS.length} DO WYBORU</small></span>
+                <span className="avatar-toggle-current">{avatar}</span><span className="avatar-toggle-arrow">{avatarPickerOpen ? "⌃" : "⌄"}</span>
+              </button>
+              {avatarPickerOpen && <div className="avatar-picker" aria-label="Dostępne awatary">
+                {AVATARS.map(item=><button type="button" key={item} aria-label={`Wybierz awatar ${item}`} aria-pressed={avatar===item} className={"avatar-choice"+(avatar===item?" selected":"")} onClick={()=>{setAvatar(item);setAvatarPickerOpen(false);}}>{item}</button>)}
+              </div>}
             </aside>
           </div>
           <div className="home-actions">

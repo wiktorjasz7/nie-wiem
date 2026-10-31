@@ -313,7 +313,7 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
               </div>
               {state.role==="impostor" && <div className="imp-guess-area">
                 {state.can_guess ? <>
-                  <p>Możesz w dowolnym momencie spróbować zgadnąć hasło. <strong>Masz jedną próbę.</strong></p>
+                  <p>Możesz w dowolnym momencie spróbować zgadnąć hasło. <strong>Masz jedną próbę.</strong> Drobne literówki i brak polskich znaków są akceptowane.</p>
                   {!guessOpen ? <button className="secondary" onClick={()=>setGuessOpen(true)}>✦ Spróbuj odgadnąć hasło</button> :
                     <form onSubmit={makeGuess} className="imp-guess-form">
                       <input autoFocus maxLength={80} value={guess} onChange={e=>setGuess(e.target.value)} placeholder="Wpisz tajne hasło…" aria-label="Przypuszczalne hasło"/>
@@ -361,7 +361,7 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
             <div className="imp-final-guess-icon" aria-hidden="true">⌑</div>
             <h2>{state.role==="impostor" ? "Zdemaskowano Cię. Znasz hasło?" : "Impostor został zdemaskowany!"}</h2>
             <p>{state.role==="impostor"
-              ? "Gracze wskazali Cię poprawnie, ale możesz jeszcze wygrać. Odgadnij tajne hasło lub zrezygnuj z próby."
+              ? "Gracze wskazali Cię poprawnie, ale możesz jeszcze wygrać. Odgadnij tajne hasło lub zrezygnuj z próby. Drobne literówki i brak polskich znaków są akceptowane."
               : "Wskazaliście "+(state.impostor_name||"impostora")+". Teraz ma jeszcze jedną szansę odgadnąć hasło. Jeśli się pomyli lub zrezygnuje, wygrywacie."}</p>
             {state.role==="impostor" ?
               <form onSubmit={makeGuess} className="imp-guess-form imp-final-guess-form">

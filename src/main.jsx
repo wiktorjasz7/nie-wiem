@@ -8,14 +8,19 @@ const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = url && key && !url.includes("TWOJ-PROJEKT") ? createClient(url, key) : null;
 const AVATARS = ["😎","🐼","🦊","🐱","🐻","🐨","🐯","🐙","👽","🤖","👻","🦄","🐧","🦁","🐲","🍄","⚡","🔥","🐸","🐵","🐰","🐹","🐮","🐷","🐺","🐗","🦝","🦉","🦋","🐢","🐬","🦈","🦖","🦕","🐝","🐞","🦂","🦀","🦐","🐳","🦩","🦚","🦜","🦔","🐿️","🌵","🌻","🌈","🍀","🍉","🍓","🍕","🍩","🎃","👑","💀","👾","💎","🎸","🚀","🛸","⚽","🏀","🎮","🎧","🧸","🧙","🥷","🦸","🧛","🧟","👺","👹","🤡","🥶","🥳","😈","🤠","🤓","🥸","😺","🙈","💩","🫶","🧠"];
 const CATEGORIES = ["Mieszane","Filmy i seriale","Gry","Jedzenie","Zwierzęta","Przedmioty","Postacie","Internet / memy","Sport","Muzyka","Marki","Polska","Technologia","Social media","Popularne teraz"];
-const SESSION_KEY = "czolko-room-session-v1";
-const clearSavedSession = () => { try { localStorage.removeItem(SESSION_KEY); } catch {} };
+const SESSION_KEY = "czolko-room-session-v2";
+const LEGACY_SESSION_KEY = "czolko-room-session-v1";
+// Token należy do jednej karty przeglądarki, nie do wszystkich kart w tej domenie.
+const clearSavedSession = () => {
+  try { sessionStorage.removeItem(SESSION_KEY); } catch {}
+  try { localStorage.removeItem(LEGACY_SESSION_KEY); } catch {}
+};
 const getSavedSession = () => {
   try {
-    const saved = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
-    const invitedCode = new URLSearchParams(window.location.search).get("room")?.toUpperCase();
+    // Link do pokoju to zawsze zaproszenie do dołączenia, a nie do przejęcia cudzej sesji.
+    if (new URLSearchParams(window.location.search).has("room")) return null;
+    const saved = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
     if (!saved || !/^[A-Z0-9]{5,6}$/.test(saved.code) || typeof saved.token !== "string") return null;
-    if (invitedCode && invitedCode !== saved.code) return null;
     return saved;
   } catch { return null; }
 };
@@ -130,12 +135,7 @@ function App() {
       if (!audioContextRef.current) audioContextRef.current = new AudioContextClass();
       const ctx = audioContextRef.current;
       if (ctx.state === "suspended") ctx.resume();
-      const eventNotes = {
-        shuffle: [392, 440, 523, 659], hint: [740, 988], skip: [392, 311],
-        confirm: [659, 880, 1047], reject: [392, 330, 262], vote: [494, 587],
-        pass: [440, 392], chance: [523, 784]
-      };
-      const notes = eventNotes[type] || (type === "win" ? [523, 659, 784, 1047, 1319] : type === "start" ? [392, 523, 659] : type === "point" ? [523, 659, 784] : type === "join" ? [440, 554] : [392]);
+      const notes = type === "win" ? [523, 659, 784, 1047, 1319] : type === "start" ? [392, 523, 659] : type === "point" ? [523, 659, 784] : type === "join" ? [440, 554] : [392];
       notes.forEach((frequency, index) => {
         const oscillator = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -183,18 +183,7 @@ function App() {
     }
     if (previous?.status === "finished" && state.status === "playing") setWinnerCelebration(false);
     if (previous) {
-      // Każdy nowy event ma rosnący numer. Odtwórz go raz, nie przy każdym odpytywaniu.
-      if (state.code === previous.code && Number(state.event_seq) > Number(previous.event_seq)) {
-        const kind = state.event_kind;
-        if (kind === "hint") playSfx("hint");
-        else if (kind === "skip") playSfx("skip");
-        else if (kind === "point") playSfx("confirm");
-        else if (kind === "rejected") playSfx("reject");
-        else if (kind === "vote") playSfx("vote");
-        else if (kind === "chance") playSfx("chance");
-        else if (kind === "start" && state.modifiers?.random_order) playSfx("shuffle");
-      }
-      if (state.players.length > previous.players.length) playSfx("join");
+       if (state.players.length > previous.players.length) playSfx("join");
       if (
         state.status === "playing" &&
         previous.current_player_name &&
@@ -260,12 +249,20 @@ function App() {
   const enter = async (data) => {
     try {
       localStorage.setItem("nie-wiem-avatar", avatar);
-      localStorage.setItem(SESSION_KEY, JSON.stringify({ code: data.code, token: data.token, name: name.trim() }));
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ code: data.code, token: data.token, name: name.trim() }));
+      // Stary zapis był współdzielony między kartami i powodował podwójne tożsamości.
+      localStorage.removeItem(LEGACY_SESSION_KEY);
     } catch {}
     previousGameState.current = null;
     setState(null);
     const { error: avatarError } = await supabase.rpc("set_player_avatar", { p_code: data.code, p_token: data.token, p_avatar: avatar });
     if (avatarError) setError(avatarError.message);
+    // Usuń znacznik zaproszenia po dołączeniu, żeby odświeżenie przywróciło tę samą kartę.
+    if (new URLSearchParams(window.location.search).has("room")) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("room");
+      window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    }
     setCode(data.code);
     setRoom(data.code);
     setToken(data.token);
@@ -514,9 +511,6 @@ const advance = async (correct, skipWord = false) => {
         </div>
         {error && <div className="alert">{error}</div>}
         {notice && <div className="notice">{notice}</div>}
-        {state?.event_text && state?.status !== "waiting" && <div className={"game-event-notice event-"+(state.event_kind||"info")} role="status" aria-live="polite">
-          <span className="game-event-label">📣 OSTATNIE WYDARZENIE</span><strong>{state.event_text}</strong>
-        </div>}
         {!state ? <div className="panel loading">Ładowanie pokoju...</div> : <>
           <div className="panel players-panel">
             <div className="section-head"><div><span className="eyebrow">UCZESTNICY</span><h2>Gracze <span className="count">{state.players.length}</span></h2></div><span className="status">{state.status === "finished" ? "KONIEC GRY" : state.status === "playing" ? "GRA W TOKU" : "OCZEKIWANIE"}</span></div>
@@ -544,6 +538,7 @@ const advance = async (correct, skipWord = false) => {
             <h2>{state.current_player_name || "Gracz"} {myTurn ? "— Twoja kolej!" : "zadaje pytanie"}</h2>
             {state.active_event && <div className={"chaos-event chaos-"+state.active_event}><span>☄ WYDARZENIE CHAOSU</span><strong>{{forbidden_question:"ZAKAZANE PYTANIE",perspective:"ZMIANA PERSPEKTYWY",kings_bonus:"KRÓLEWSKI BONUS",last_chance:"OSTATNIA SZANSA",lightning:"BŁYSKAWICA",}[state.active_event]}</strong><p>{{forbidden_question:"Przez tę turę nie zaczynaj pytań od «Czy to…».",perspective:"Zadawaj pytania z zupełnie innej perspektywy.",kings_bonus:"Poprawne odgadnięcie daje podwójne punkty.",last_chance:"Jeśli przekażesz kolejkę, dostajesz jeszcze jedną próbę.",lightning:"Następne poprawne odgadnięcie daje podwójne punkty.",}[state.active_event]}</p></div>}
             <p>{myTurn ? <>Zadawaj pytania na głos. {state.game_mode === "teams" ? "Twoja drużyna wspólnie zgaduje jedno hasło, a przeciwnicy widzą je i odpowiadają TAK lub NIE." : "Pozostali gracze widzą Twoje hasło i odpowiadają TAK lub NIE."} Możesz przekazać kolejkę albo spróbować odgadnąć hasło.</> : "Odpowiadaj TAK lub NIE na pytania aktualnego gracza. Twoja kolej nadejdzie później."}</p>{state.game_mode === "teams" && <div className="team-score-strip">{teamLeaderboard.map(team=><span key={team.team} className={"team-progress team-"+team.team}><strong>{team.name}</strong><b>{team.score} / {state.target_score || 3} PKT</b></span>)}</div>}
+            {state.hint_used && <div className="hint-request-inline">💡 {myTurn ? "Poprosiłeś o podpowiedź — pozostali mogą podać jedno skojarzenie." : state.current_player_name+" prosi o podpowiedź — powiedz jedno skojarzenie bez zdradzania hasła."}</div>}
             {votePending && <div className="guess-vote-panel" role="status">
               <div className="eyebrow">GŁOSOWANIE NAD ODPOWIEDZIĄ</div>
               <strong>Czy {vote.player_name} naprawdę odgadł(a) hasło?</strong>

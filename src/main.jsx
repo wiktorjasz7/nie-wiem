@@ -19,6 +19,7 @@ function App() {
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [code, setCode] = useState(() => new URLSearchParams(window.location.search).get("room")?.toUpperCase() || "");
   const [category, setCategory] = useState("Mieszane");
+  const [targetScore, setTargetScore] = useState(3);
   const [custom, setCustom] = useState("");
   const [room, setRoom] = useState("");
   const [token, setToken] = useState("");
@@ -180,7 +181,7 @@ function App() {
   const createRoom = async () => {
     if (!name.trim()) return setError("Wpisz swój nick.");
     const words = custom.split(/[\n,;]/).map(x => x.trim()).filter(Boolean);
-    const data = await run("create_room", { p_name: name.trim(), p_category: category, p_custom_words: words });
+    const data = await run("create_room", { p_name: name.trim(), p_category: category, p_custom_words: words, p_target_score: targetScore });
     if (data) enter(data);
   };
   const joinRoom = async () => {
@@ -302,6 +303,10 @@ const advance = async (correct) => {
               <div className="action-icon">✦</div><h2>Stwórz pokój</h2><p>Ty jesteś gospodarzem. Zaproś ekipę kodem.</p>
               <label>KATEGORIA</label>
               <select value={category} onChange={e=>setCategory(e.target.value)}>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select>
+              <label>ILE PUNKTÓW DO ZWYCIĘSTWA?</label>
+              <select value={targetScore} onChange={e=>setTargetScore(Number(e.target.value))}>
+                {[1,3,5,7,10].map(n=><option key={n} value={n}>{n} {n === 1 ? "punkt" : n < 5 ? "punkty" : "punktów"}</option>)}
+              </select>
               <label>WŁASNE HASŁA <small>(opcjonalnie, oddziel przecinkami lub enterem)</small></label>
               <textarea value={custom} onChange={e=>setCustom(e.target.value)} placeholder="np. wasz nauczyciel&#10;śmieszny tekst z grupy" rows="3"/>
               <button className="primary" disabled={busy} onClick={createRoom}>{busy ? "Chwila..." : "Utwórz pokój"} <span>→</span></button>
@@ -320,7 +325,7 @@ const advance = async (correct) => {
 
       {screen === "room" && <section className="room-wrap">
         <div className="room-heading"><div><div className="eyebrow">POKÓJ GRY</div><h1>{state?.status === "finished" ? "Mamy zwycięzcę!" : state?.status === "playing" ? "Czas zgadywać." : "Ekipa się zbiera."}</h1></div>
-          <div className="room-code"><span>KOD DOŁĄCZENIA</span><strong>{room}</strong><button onClick={()=>navigator.clipboard?.writeText(room)}>KOPIUJ KOD</button><button onClick={()=>navigator.clipboard?.writeText(window.location.origin + "/?room=" + encodeURIComponent(room))}>KOPIUJ LINK ↗</button></div>
+          <div className="room-code"><span>CEL GRY: {state?.target_score || 3} PKT</span><span>KOD DOŁĄCZENIA</span><strong>{room}</strong><button onClick={()=>navigator.clipboard?.writeText(room)}>KOPIUJ KOD</button><button onClick={()=>navigator.clipboard?.writeText(window.location.origin + "/?room=" + encodeURIComponent(room))}>KOPIUJ LINK ↗</button></div>
         </div>
         {error && <div className="alert">{error}</div>}
         {notice && <div className="notice">{notice}</div>}
@@ -341,7 +346,7 @@ const advance = async (correct) => {
             {myTurn ? <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>Odgadłem hasło! +1 pkt</button><button className="secondary" onClick={()=>advance(false)} disabled={busy}>Przekaż kolejkę →</button></div> : <div className="waiting-box">Teraz pytanie zadaje: <strong>{state.current_player_name}</strong></div>}
           </div>}
           {state.status === "finished" && <div className="panel results-panel">
-            <div className="results-heading"><div className="eyebrow">🏆 GRA ZAKOŃCZONA</div><h2>TRZY HASŁA. JEDEN ZWYCIĘZCA.</h2><p><strong>{state.winner_name || state.last_player_name}</strong> zdobywa 3 punkty i wygrywa grę!</p></div>
+            <div className="results-heading"><div className="eyebrow">🏆 GRA ZAKOŃCZONA</div><h2>{state.target_score || 3} {state.target_score === 1 ? "PUNKT" : "PUNKTÓW"}. JEDEN ZWYCIĘZCA.</h2><p><strong>{state.winner_name || state.last_player_name}</strong> zdobywa {state.target_score || 3} {state.target_score === 1 ? "punkt" : state.target_score < 5 ? "punkty" : "punktów"} i wygrywa grę!</p></div>
             <div className="podium">
               {leaderboard.slice(0,3).map((p,i)=><div className={"podium-place place-"+(i+1)} key={p.id}>
                 <div className="podium-medal">{["🥇","🥈","🥉"][i]}</div>

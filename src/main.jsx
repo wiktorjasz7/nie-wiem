@@ -224,7 +224,7 @@ const advance = async (correct, skipWord = false) => {
     return;
   }
 
-  setNotice(data?.last_chance_used ? "OSTATNIA SZANSA! Możesz spróbować jeszcze raz — kolejka zostaje u Ciebie." : skipWord ? `Hasło pominięte. -${data?.points_deducted || 1} pkt — dostajesz nowe hasło.` : correct ? `Hasło odgadnięte! +${data?.points_awarded || 1} pkt — dostajesz nowe hasło.` : "Przekazano kolejkę.");
+  setNotice(data?.last_chance_used ? "OSTATNIA SZANSA! Możesz spróbować jeszcze raz — kolejka zostaje u Ciebie." : skipWord ? `Hasło pominięte. ${data?.points_deducted ? "-1 pkt" : "bez utraty punktu (masz 0 pkt)"} — dostajesz nowe hasło.` : correct ? `Hasło odgadnięte! +${data?.points_awarded || 1} pkt — dostajesz nowe hasło.` : "Przekazano kolejkę.");
 
   if (correct) setCelebrate(true);
 };

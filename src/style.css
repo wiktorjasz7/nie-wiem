@@ -292,4 +292,3 @@ html[data-theme="crimson"]{--theme-accent:#e34b5f;--theme-accent-light:#ffabb5;-
 @keyframes chaos-event-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:520px){.modifier-grid{grid-template-columns:1fr}.chaos-option{grid-column:auto}.modifier-heading{align-items:flex-start;flex-direction:column}.modifier-heading small{text-align:left}}
 
-.skip-status{margin:12px 0 0;padding:9px 12px;border-radius:9px;background:rgba(var(--theme-accent-rgb),.08);border:1px solid rgba(var(--theme-accent-rgb),.2);color:var(--theme-accent-light);font-size:10px}

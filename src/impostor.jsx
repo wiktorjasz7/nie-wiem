@@ -242,6 +242,12 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
             <div className="action-icon">↗</div>
             <h2>Dołącz do ekipy</h2>
             <p>Dostałeś link albo kod? Wejdź pod własnym nickiem. Rola zostanie wylosowana po starcie.</p>
+            <label>TWÓJ NICK</label>
+            <input maxLength={18} placeholder="Wpisz swój nick" value={name} onChange={e=>setName(e.target.value)} />
+            <label>TWÓJ AWATAR</label>
+            <select value={avatar} onChange={e=>setAvatar(e.target.value)} aria-label="Twój awatar przy dołączaniu">
+              {avatars.map(a=><option key={a} value={a}>{a}</option>)}
+            </select>
             <label>KOD POKOJU</label>
             <input maxLength={6} placeholder="np. A1B2C3" value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())}/>
             {getInvitation() && <div className="imp-invite-tip">Kod z zaproszenia został wpisany automatycznie.</div>}
@@ -283,14 +289,14 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
             </div>}
           </section>
 
-          {state.status!=="waiting" && state.status!=="finished" && <section className={"imp-role-card"+(state.role==="impostor"?" is-impostor":"")}>
+          {state.status!=="waiting" && state.status!=="finished" && <section className={"imp-role-card"+(reveal && state.role==="impostor"?" is-impostor":"")}>
             {!reveal ? <div className="imp-role-hidden">
               <span className="imp-role-icon">⌑</span>
               <div><span>TAJNA KARTA</span><strong>Twoja rola jest ukryta</strong><p>Odkryj ją tak, żeby inni nie zobaczyli ekranu.</p></div>
               <button className="secondary" onClick={()=>setReveal(true)}>Pokaż moją rolę</button>
             </div> : <>
               <div className="imp-role-revealed"><div className="eyebrow">TWOJA TAJNA ROLA</div>
-                <h2>{state.role==="impostor"?"JESTEŚ IMPOSTOREM":"ZNasz HASŁO".toUpperCase()}</h2>
+                <h2>{state.role==="impostor"?"JESTEŚ IMPOSTOREM":"ZNASZ HASŁO"}</h2>
                 {state.role==="impostor"?<p>Nie znasz hasła. Słuchaj skojarzeń i blefuj.</p>:<><div className="imp-secret-word">{state.secret_word}</div><p>Podaj skojarzenie, ale nie zdradzaj hasła wprost.</p></>}
                 <button className="imp-hide-role" onClick={()=>{setReveal(false);setGuessOpen(false);}}>Ukryj kartę ↑</button>
               </div>

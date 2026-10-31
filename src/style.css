@@ -424,3 +424,16 @@ html[data-theme] .players-grid .player.turn-active::after,
 /* Dyskretna prośba o wskazówkę zostaje częścią mechaniki podpowiedzi,
    bez wspólnego paska komunikatów o wydarzeniach. */
 .hint-request-inline{margin:12px 0;padding:10px 12px;border-left:3px solid rgba(244,195,112,.65);background:rgba(244,195,112,.06);border-radius:7px;font-size:11px;line-height:1.55;color:#e1d5bd}
+
+
+/* Edycja ustawień pokoju — te same kontrolki co przy tworzeniu pokoju. */
+.edit-room-trigger{margin-top:17px;width:100%;text-align:center}
+.room-settings-editor{margin-top:17px;padding:19px;border:1px solid #ffffff1c;border-radius:13px;background:#ffffff04}
+.room-settings-editor .modifier-heading{margin:0 0 14px}
+.room-settings-editor .modifier-section{margin-top:19px}
+.room-settings-editor .modifier-option{margin:9px 0}
+.room-settings-editor .category-dropdown{margin-bottom:4px}
+.room-settings-editor .room-settings-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.room-settings-editor .room-settings-actions button{min-width:135px}
+.room-settings-editor .room-settings-warning{margin:12px 0 0;color:#edc98a;font-size:11px;line-height:1.6}
+@media(max-width:560px){.room-settings-editor{padding:13px}.room-settings-editor .room-settings-actions{flex-direction:column}.room-settings-editor .room-settings-actions button{width:100%}}

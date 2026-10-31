@@ -21,7 +21,7 @@ function App() {
   const [category, setCategory] = useState("Mieszane");
   const [targetScore, setTargetScore] = useState(3);
   const [gameMode, setGameMode] = useState("individual");
-  const [modifiers, setModifiers] = useState({ double_points: false, hard_words: false, limited_skips: false, chaos: false });
+  const [modifiers, setModifiers] = useState({ double_points: false, hard_words: false, chaos: false });
   const [custom, setCustom] = useState("");
   const [room, setRoom] = useState("");
   const [token, setToken] = useState("");
@@ -320,7 +320,6 @@ const advance = async (correct) => {
                 <div className="modifier-grid">
                   <label className={"modifier-option"+(modifiers.double_points?" selected":"")}><input type="checkbox" checked={modifiers.double_points} onChange={e=>setModifiers(v=>({...v,double_points:e.target.checked}))}/><span className="modifier-icon">✦</span><span><strong>Podwójne punkty</strong><small>Każde poprawne odgadnięcie daje 2 punkty.</small></span></label>
                   <label className={"modifier-option"+(modifiers.hard_words?" selected":"")}><input type="checkbox" checked={modifiers.hard_words} onChange={e=>setModifiers(v=>({...v,hard_words:e.target.checked}))}/><span className="modifier-icon">🧠</span><span><strong>Trudne hasła</strong><small>Losowane są dłuższe hasła. Za trafienie: +1 bonus.</small></span></label>
-                  <label className={"modifier-option"+(modifiers.limited_skips?" selected":"")}><input type="checkbox" checked={modifiers.limited_skips} onChange={e=>setModifiers(v=>({...v,limited_skips:e.target.checked}))}/><span className="modifier-icon">↪</span><span><strong>Ograniczone pomijanie</strong><small>Pierwsze pominięcie jest darmowe, kolejne kosztują 1 punkt.</small></span></label>
                   <label className={"modifier-option chaos-option"+(modifiers.chaos?" selected":"")}><input type="checkbox" checked={modifiers.chaos} onChange={e=>setModifiers(v=>({...v,chaos:e.target.checked}))}/><span className="modifier-icon">☄</span><span><strong>CHAOS</strong><small>Co 3 tury losuje się specjalne wydarzenie.</small></span></label>
                 </div>
                 {modifiers.chaos && <div className="chaos-pool"><strong>W PULI CHAOSU:</strong><span>Zakazane pytanie</span><span>Zmiana perspektywy</span><span>Królewski bonus</span><span>Ostatnia szansa</span><span>Błyskawica</span></div>}
@@ -362,7 +361,6 @@ const advance = async (correct) => {
             <h2>{state.current_player_name || "Gracz"} {myTurn ? "— Twoja kolej!" : "zadaje pytanie"}</h2>
             {state.active_event && <div className={"chaos-event chaos-"+state.active_event}><span>☄ WYDARZENIE CHAOSU</span><strong>{{forbidden_question:"ZAKAZANE PYTANIE",perspective:"ZMIANA PERSPEKTYWY",kings_bonus:"KRÓLEWSKI BONUS",last_chance:"OSTATNIA SZANSA",lightning:"BŁYSKAWICA",}[state.active_event]}</strong><p>{{forbidden_question:"Przez tę turę nie zaczynaj pytań od «Czy to…».",perspective:"Zadawaj pytania z zupełnie innej perspektywy.",kings_bonus:"Poprawne odgadnięcie daje podwójne punkty.",last_chance:"Jeśli przekażesz kolejkę, dostajesz jeszcze jedną próbę.",lightning:"Następne poprawne odgadnięcie daje podwójne punkty.",}[state.active_event]}</p></div>}
             <p>{myTurn ? <>Zadawaj pytania na głos. {state.game_mode === "teams" ? "Twoja drużyna wspólnie zgaduje jedno hasło, a przeciwnicy widzą je i odpowiadają TAK lub NIE." : "Pozostali gracze widzą Twoje hasło i odpowiadają TAK lub NIE."} Możesz przekazać kolejkę albo spróbować odgadnąć hasło.</> : "Odpowiadaj TAK lub NIE na pytania aktualnego gracza. Twoja kolej nadejdzie później."}</p>{state.game_mode === "teams" && <div className="team-score-strip">{teamLeaderboard.map(team=><span key={team.team} className={"team-progress team-"+team.team}><strong>{team.name}</strong><b>{team.score} / {state.target_score || 3} PKT</b></span>)}</div>}
-            {myTurn && state.modifiers?.limited_skips && <div className="skip-status">{(me?.skips_used || 0) < 1 ? "Masz jeszcze jedno darmowe pominięcie." : "Darmowe pominięcie wykorzystane — kolejne kosztuje 1 punkt."}</div>}
             {myTurn ? <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>{state.game_mode === "teams" ? "Odgadłem! Punkty dla drużyny" : "Odgadłem hasło! Punkty"}</button><button className="secondary" onClick={()=>advance(false)} disabled={busy}>Przekaż kolejkę →</button></div> : <div className="waiting-box">Teraz pytanie zadaje: <strong>{state.current_player_name}</strong></div>}
           </div>}
           {state.status === "finished" && <div className="panel results-panel">

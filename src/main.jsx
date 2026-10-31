@@ -221,7 +221,7 @@ const advance = async (correct) => {
       <div className="celebration-card"><span className="celebration-check">✓</span><strong>ODGADNIĘTE!</strong><small>+1 PUNKT · NOWE HASŁO</small></div>
     </div>}
     <header className="topbar">
-      <button className="brand" onClick={leave}><span className="brand-mark">?</span><span>NIE WIEM<span className="brand-dot">.</span></span></button>
+      <button className="brand" onClick={leave}><span className="brand-mark">?</span><span>CZÓŁKO<span className="brand-dot">.</span></span></button>
       <div className="topbar-tools">
         <label className="theme-picker">KOLORY
           <select className="theme-select" aria-label="Motyw kolorystyczny" value={theme} onChange={e=>setTheme(e.target.value)}>

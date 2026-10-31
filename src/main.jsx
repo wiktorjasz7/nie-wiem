@@ -6,7 +6,7 @@ import "./style.css";
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = url && key && !url.includes("TWOJ-PROJEKT") ? createClient(url, key) : null;
-const AVATARS = ["😎","🐼","🦊","🐱","🐻","🐨","🐯","🐙","👽","🤖","👻","🦄","🐧","🦁","🐲","🍄","⚡","🔥"];
+const AVATARS = ["😎","🐼","🦊","🐱","🐻","🐨","🐯","🐙","👽","🤖","👻","🦄","🐧","🦁","🐲","🍄","⚡","🔥","🐸","🐵","🐰","🐹","🐮","🐷","🐺","🐗","🦝","🦉","🦋","🐢","🐬","🦈","🦖","🦕","🐝","🐞","🦂","🦀","🦐","🐳","🦩","🦚","🦜","🦔","🐿️","🌵","🌻","🌈","🍀","🍉","🍓","🍕","🍩","🎃","👑","💀","👾","💎","🎸","🚀","🛸","⚽","🏀","🎮","🎧","🧸","🧙","🥷","🦸","🧛","🧟","👺","👹","🤡","🥶","🥳","😈","🤠","🤓","🥸","😺","🙈","💩","🫶","🧠"];
 const CATEGORIES = ["Mieszane","Filmy i seriale","Gry","Jedzenie","Zwierzęta","Przedmioty","Postacie","Internet / memy","Sport","Muzyka","Marki","Polska","Technologia","Social media","Popularne teraz"];
 
 function App() {
@@ -270,7 +270,7 @@ const advance = async (correct) => {
               <div className="profile-preview"><span className="profile-preview-avatar">{avatar}</span><span><small>TWÓJ PROFIL</small><strong>{name.trim() || "Gracz"}</strong></span></div>
             </div>
             <aside className="avatar-side-panel">
-              <div className="avatar-panel-heading"><span>WYBIERZ AWATAR</span><small>18 DO WYBORU</small></div>
+              <div className="avatar-panel-heading"><span>WYBIERZ AWATAR</span><small>{AVATARS.length} DO WYBORU</small></div>
               <div className="avatar-picker">{AVATARS.map(item => <button type="button" key={item} className={"avatar-choice"+(avatar===item?" selected":"")} aria-label={"Wybierz awatar "+item} aria-pressed={avatar===item} onClick={()=>setAvatar(item)}>{item}</button>)}</div>
             </aside>
           </div>

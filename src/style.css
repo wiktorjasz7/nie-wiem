@@ -205,3 +205,20 @@ html[data-theme="berry"]{--theme-accent:#c77be8;--theme-accent-light:#e6baff;--t
 html[data-theme="teal"]{--theme-accent:#45c7b8;--theme-accent-light:#a0f2e7;--theme-accent-dark:#102522;--theme-accent-rgb:69,199,184;--theme-glow:#174b47}
 html[data-theme="blue"]{--theme-accent:#668cff;--theme-accent-light:#b8c8ff;--theme-accent-dark:#121b35;--theme-accent-rgb:102,140,255;--theme-glow:#24376b}
 html[data-theme="crimson"]{--theme-accent:#e34b5f;--theme-accent-light:#ffabb5;--theme-accent-dark:#2a1016;--theme-accent-rgb:227,75,95;--theme-glow:#501b27}
+
+
+/* Kompaktowa lista rozwijana awatarów */
+.avatar-select{
+  width:100%;
+  min-height:46px;
+  padding:10px 13px;
+  border:1px solid rgba(var(--theme-accent-rgb),.35);
+  border-radius:11px;
+  background:#10101a;
+  color:var(--theme-accent-light);
+  font-size:22px;
+  cursor:pointer;
+}
+.avatar-select:focus{outline:2px solid rgba(var(--theme-accent-rgb),.35);outline-offset:2px}
+.avatar-side-panel{display:flex;flex-direction:column;justify-content:center;gap:10px}
+.avatar-panel-heading{margin-bottom:0}

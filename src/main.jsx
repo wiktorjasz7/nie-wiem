@@ -10,6 +10,9 @@ const CATEGORIES = ["Mieszane", "Filmy i seriale", "Gry", "Jedzenie", "Zwierzęt
 
 function App() {
   const [screen, setScreen] = useState("home");
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem("nie-wiem-theme") || "amethyst"; } catch { return "amethyst"; }
+  });
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [category, setCategory] = useState("Mieszane");
@@ -31,6 +34,11 @@ function App() {
   const [sfxVolume, setSfxVolume] = useState(() => {
     try { return Number(localStorage.getItem("nie-wiem-sfx-volume") ?? 0.5); } catch { return 0.5; }
   });
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem("nie-wiem-theme", theme); } catch {}
+  }, [theme]);
+
   const audioRef = useRef(null);
   const audioContextRef = useRef(null);
   const previousGameState = useRef(null);
@@ -207,6 +215,16 @@ const advance = async (correct) => {
     <header className="topbar">
       <button className="brand" onClick={leave}><span className="brand-mark">?</span><span>NIE WIEM<span className="brand-dot">.</span></span></button>
       <div className="topbar-tools">
+        <label className="theme-picker">KOLORY
+          <select className="theme-select" aria-label="Motyw kolorystyczny" value={theme} onChange={e=>setTheme(e.target.value)}>
+            <option value="amethyst">💜 Amethyst</option>
+            <option value="ocean">🌊 Ocean</option>
+            <option value="forest">🌲 Forest</option>
+            <option value="rose">🌹 Rose</option>
+            <option value="sunset">🔥 Sunset</option>
+            <option value="midnight">🖤 Midnight</option>
+          </select>
+        </label>
         <div className="audio-controls">
           <button className="audio-toggle" onClick={toggleMusic}>
             {musicEnabled ? "♫ Muzyka: ON" : musicSaved ? "♫ Wznów muzykę" : "♫ Włącz muzykę"}

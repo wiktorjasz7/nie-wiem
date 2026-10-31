@@ -15,3 +15,26 @@ input,select,textarea{width:100%;background:#10101a;border:1px solid #ffffff1c;c
 footer{border-top:1px solid #ffffff12;padding:22px 0;display:flex;justify-content:space-between;font-size:9px;color:#666276}
 .loading{padding:35px;text-align:center;color:#aaa}.home-alert{max-width:850px;margin:-30px auto 30px}
 @media(max-width:650px){.app-shell{padding:0 16px}.topbar{height:65px}.hero{margin:48px auto 40px}.home-panel{padding:15px}.home-actions{grid-template-columns:1fr}.action-card{padding:17px}.how{gap:10px;flex-wrap:wrap;font-size:8px}.room-wrap{margin:35px auto}.room-heading{align-items:flex-start;flex-direction:column;gap:18px}.room-heading h1{font-size:36px}.players-panel,.turn-panel{padding:16px}.players-grid{grid-template-columns:1fr}.lobby-footer{align-items:stretch;flex-direction:column}.lobby-footer .primary{width:100%}.turn-actions{flex-direction:column}.room-code{width:100%;justify-content:space-between}footer{gap:10px;flex-direction:column}}
+
+
+/* Subtelne animacje rozgrywki */
+.player{position:relative;overflow:hidden;transition:border-color .28s ease,background .28s ease,box-shadow .28s ease,transform .28s ease;animation:player-in .42s cubic-bezier(.2,.8,.2,1) both}
+.player.is-current{border-color:#a58aff;background:linear-gradient(110deg,#a58aff1b,#ffffff08);box-shadow:0 0 0 1px #a58aff22,0 0 24px #9b78ff18}
+.player.is-current:after{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:#a58aff;box-shadow:0 0 12px #a58aff;animation:current-glow 1.8s ease-in-out infinite}
+.player.is-me.is-current{border-color:#c0aaff;background:linear-gradient(110deg,#a58aff24,#ffffff08)}
+@keyframes player-in{from{opacity:0;transform:translateY(9px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes current-glow{0%,100%{opacity:.55}50%{opacity:1}}
+.celebration{position:fixed;inset:0;z-index:50;display:grid;place-items:center;pointer-events:none;animation:celebration-fade 1.75s ease forwards}
+.celebration-card{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;padding:25px 34px;border:1px solid #b9a2ff88;border-radius:20px;background:linear-gradient(145deg,#28213dF2,#171522F5);box-shadow:0 18px 70px #0009,0 0 45px #a58aff35;animation:celebration-pop .48s cubic-bezier(.18,.9,.25,1.25) both}
+.celebration-check{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#a58aff;color:#171222;font-size:25px;font-weight:800;box-shadow:0 0 24px #a58aff77}
+.celebration-card strong{font-size:20px;letter-spacing:.06em;color:#fff}
+.celebration-card small{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:.13em;color:#c5b4ff}
+.confetti{position:absolute;inset:0;overflow:hidden}
+.confetti span{position:absolute;top:-18px;width:8px;height:13px;border-radius:2px;background:#a58aff;animation:confetti-fall 1.5s cubic-bezier(.2,.65,.35,1) forwards}
+.confetti span:nth-child(3n){background:#d7caff;width:6px;height:10px}
+.confetti span:nth-child(3n+1){background:#7c69c7;border-radius:50%;width:9px;height:9px}
+.confetti span:nth-child(4n){background:#e4b9ff;width:5px;height:15px}
+@keyframes confetti-fall{0%{top:-5%;opacity:0}12%{opacity:1}100%{top:105%;opacity:0;transform:translateX(35px) rotate(540deg)}}
+@keyframes celebration-pop{0%{opacity:0;transform:translateY(12px) scale(.78)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes celebration-fade{0%,78%{opacity:1}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.player,.player.is-current:after,.celebration,.celebration-card,.confetti span{animation:none!important;transition:none!important}.celebration{display:none}}

@@ -19,9 +19,10 @@ function App() {
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [code, setCode] = useState(() => new URLSearchParams(window.location.search).get("room")?.toUpperCase() || "");
   const [category, setCategory] = useState("Mieszane");
+  const [difficulty, setDifficulty] = useState("normal");
   const [targetScore, setTargetScore] = useState(3);
   const [gameMode, setGameMode] = useState("individual");
-  const [modifiers, setModifiers] = useState({ double_points: false, hard_words: false, chaos: false });
+  const [modifiers, setModifiers] = useState({ double_points: false, chaos: false });
   const [custom, setCustom] = useState("");
   const [room, setRoom] = useState("");
   const [token, setToken] = useState("");
@@ -188,7 +189,7 @@ function App() {
   const createRoom = async () => {
     if (!name.trim()) return setError("Wpisz swój nick.");
     const words = custom.split(/[\n,;]/).map(x => x.trim()).filter(Boolean);
-    const data = await run("create_room", { p_name: name.trim(), p_category: category, p_custom_words: words, p_target_score: targetScore, p_game_mode: gameMode, p_modifiers: modifiers });
+    const data = await run("create_room", { p_name: name.trim(), p_category: category, p_custom_words: words, p_target_score: targetScore, p_game_mode: gameMode, p_modifiers: { ...modifiers, difficulty } });
     if (data) enter(data);
   };
   const joinRoom = async () => {
@@ -308,6 +309,12 @@ const advance = async (correct, skipWord = false) => {
               <div className="action-icon">✦</div><h2>Stwórz pokój</h2><p>Ty jesteś gospodarzem. Zaproś ekipę kodem.</p>
               <label>KATEGORIA</label>
               <select value={category} onChange={e=>setCategory(e.target.value)}>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select>
+              <label>POZIOM TRUDNOŚCI HASEŁ</label>
+              <select value={difficulty} onChange={e=>setDifficulty(e.target.value)}>
+                <option value="easy">Łatwy — popularne i proste</option>
+                <option value="normal">Normalny — trochę trudniejsze</option>
+                <option value="hard">Trudny — mniej oczywiste</option>
+              </select>
               <label>TRYB GRY</label>
               <select value={gameMode} onChange={e=>setGameMode(e.target.value)}>
                 <option value="individual">Każdy na siebie</option>
@@ -321,12 +328,11 @@ const advance = async (correct, skipWord = false) => {
                 <div className="modifier-heading"><span>✦ DODATKOWE MODYFIKACJE</span><small>WYBIERZ DOWOLNĄ LICZBĘ</small></div>
                 <div className="modifier-grid">
                   <label className={"modifier-option"+(modifiers.double_points?" selected":"")}><input type="checkbox" checked={modifiers.double_points} onChange={e=>setModifiers(v=>({...v,double_points:e.target.checked}))}/><span className="modifier-icon">✦</span><span><strong>Podwójne punkty</strong><small>Każde poprawne odgadnięcie daje 2 punkty.</small></span></label>
-                  <label className={"modifier-option"+(modifiers.hard_words?" selected":"")}><input type="checkbox" checked={modifiers.hard_words} onChange={e=>setModifiers(v=>({...v,hard_words:e.target.checked}))}/><span className="modifier-icon">🧠</span><span><strong>Trudne hasła</strong><small>Losowane są dłuższe hasła. Za trafienie: +1 bonus.</small></span></label>
                   <label className={"modifier-option chaos-option"+(modifiers.chaos?" selected":"")}><input type="checkbox" checked={modifiers.chaos} onChange={e=>setModifiers(v=>({...v,chaos:e.target.checked}))}/><span className="modifier-icon">☄</span><span><strong>CHAOS</strong><small>Co 3 tury losuje się specjalne wydarzenie.</small></span></label>
                 </div>
                 {modifiers.chaos && <div className="chaos-pool"><strong>W PULI CHAOSU:</strong><span>Zakazane pytanie</span><span>Zmiana perspektywy</span><span>Królewski bonus</span><span>Ostatnia szansa</span><span>Błyskawica</span></div>}
               </div>
-              <label>WŁASNE HASŁA <small>(opcjonalnie, oddziel przecinkami lub enterem)</small></label>
+              <label>WŁASNE HASŁA <small>(opcjonalnie, oddziel przecinkami lub enterem; dostępne na każdym poziomie)</small></label>
               <textarea value={custom} onChange={e=>setCustom(e.target.value)} placeholder="np. wasz nauczyciel&#10;śmieszny tekst z grupy" rows="3"/>
               <button className="primary" disabled={busy} onClick={createRoom}>{busy ? "Chwila..." : "Utwórz pokój"} <span>→</span></button>
             </div>
@@ -344,7 +350,7 @@ const advance = async (correct, skipWord = false) => {
 
       {screen === "room" && <section className="room-wrap">
         <div className="room-heading"><div><div className="eyebrow">POKÓJ GRY</div><h1>{state?.status === "finished" ? "Mamy zwycięzcę!" : state?.status === "playing" ? "Czas zgadywać." : "Ekipa się zbiera."}</h1></div>
-          <div className="room-code"><span>{state?.game_mode === "teams" ? "TRYB DRUŻYNOWY" : "TRYB INDYWIDUALNY"} · CEL: {state?.target_score || 3} PKT</span><span>KOD DOŁĄCZENIA</span><strong>{room}</strong><button onClick={()=>navigator.clipboard?.writeText(room)}>KOPIUJ KOD</button><button onClick={()=>navigator.clipboard?.writeText(window.location.origin + "/?room=" + encodeURIComponent(room))}>KOPIUJ LINK ↗</button></div>
+          <div className="room-code"><span>{state?.game_mode === "teams" ? "TRYB DRUŻYNOWY" : "TRYB INDYWIDUALNY"} · {({easy:"ŁATWE",normal:"NORMALNE",hard:"TRUDNE"})[state?.modifiers?.difficulty] || "MIESZANE"} HASŁA · CEL: {state?.target_score || 3} PKT</span><span>KOD DOŁĄCZENIA</span><strong>{room}</strong><button onClick={()=>navigator.clipboard?.writeText(room)}>KOPIUJ KOD</button><button onClick={()=>navigator.clipboard?.writeText(window.location.origin + "/?room=" + encodeURIComponent(room))}>KOPIUJ LINK ↗</button></div>
         </div>
         {error && <div className="alert">{error}</div>}
         {notice && <div className="notice">{notice}</div>}

@@ -353,12 +353,12 @@ const advance = async (correct) => {
           {state.status === "playing" && <div className="panel turn-panel">
             <div className="eyebrow">AKTUALNA KOLEJKA</div>
             <h2>{state.current_player_name || "Gracz"} {myTurn ? "— Twoja kolej!" : "zadaje pytanie"}</h2>
-            <p>{myTurn ? "Zadawaj pytania na głos. Pozostali gracze widzą Twoje hasło i odpowiadają TAK lub NIE. Możesz przekazać kolejkę albo spróbować odgadnąć hasło." : "Odpowiadaj TAK lub NIE na pytania aktualnego gracza. Twoja kolej nadejdzie później."}</p>{state.game_mode === "teams" && <div className="team-score-strip"><span>🏅 TWOJA DRUŻYNA: <strong>{myTeam?.name || "—"}</strong></span><strong>{myTeam?.score || 0} / {state.target_score || 3} PKT</strong></div>}
+            <p>{myTurn ? "Zadawaj pytania na głos. Pozostali gracze widzą Twoje hasło i odpowiadają TAK lub NIE. Możesz przekazać kolejkę albo spróbować odgadnąć hasło." : "Odpowiadaj TAK lub NIE na pytania aktualnego gracza. Twoja kolej nadejdzie później."}</p>{state.game_mode === "teams" && <div className="team-score-strip">{teamLeaderboard.map(team=><span key={team.team} className={"team-progress team-"+team.team}><strong>{team.name}</strong><b>{team.score} / {state.target_score || 3} PKT</b></span>)}</div>}
             {myTurn ? <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>{state.game_mode === "teams" ? "Odgadłem! +1 pkt dla drużyny" : "Odgadłem hasło! +1 pkt"}</button><button className="secondary" onClick={()=>advance(false)} disabled={busy}>Przekaż kolejkę →</button></div> : <div className="waiting-box">Teraz pytanie zadaje: <strong>{state.current_player_name}</strong></div>}
           </div>}
           {state.status === "finished" && <div className="panel results-panel">
             <div className="results-heading"><div className="eyebrow">🏆 GRA ZAKOŃCZONA</div><h2>{state.game_mode === "teams" ? "ZWYCIĘSTWO DRUŻYNY!" : (state.target_score || 3) + " PUNKTÓW. JEDEN ZWYCIĘZCA."}</h2><p><strong>{state.winner_name || state.last_player_name}</strong> {state.game_mode === "teams" ? "zdobywa zwycięstwo dla całej ekipy!" : "zdobywa " + (state.target_score || 3) + " pkt i wygrywa grę!"}</p></div>
-            <div className="podium">
+            <div className={"podium"+(state.game_mode === "teams" ? " team-podium" : "")}>
               {(state.game_mode === "teams" ? teamLeaderboard : leaderboard.slice(0,3)).map((item,i)=><div className={"podium-place place-"+(i+1)} key={state.game_mode === "teams" ? item.team : item.id}>
                 <div className="podium-medal">{["🥇","🥈","🥉"][i]}</div>
                 <div className="podium-avatar">{state.game_mode === "teams" ? item.avatar : (item.avatar || (item.name||"?").slice(0,1).toUpperCase())}</div>

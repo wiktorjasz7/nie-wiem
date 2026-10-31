@@ -70,7 +70,7 @@ function App() {
   };
   const advance = async (correct) => {
     const data = await run("finish_turn", { p_code: room, p_token: token, p_correct: correct });
-    if (data) setNotice(correct ? "Hasło odgadnięte! Zdobywasz punkt." : "Przekazano kolejkę.");
+    if (data) setNotice(correct ? "Hasło odgadnięte! +1 punkt i dostajesz nowe hasło." : "Przekazano kolejkę.");
   };
   const leave = () => {
     setScreen("home"); setRoom(""); setToken(""); setState(null); setError(""); setNotice("");

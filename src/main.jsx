@@ -52,7 +52,7 @@ function App() {
       setMusicSaved(true);
       try { localStorage.setItem("nie-wiem-music", "on"); } catch {}
     } catch {
-      setError("Nie udało się odtworzyć muzyki. Sprawdź, czy plik public/audio/lobby.mp3.mp3 jest już w repozytorium.");
+      setError("Nie udało się odtworzyć muzyki. Sprawdź, czy plik public/audio/lobby.mp3 jest już w repozytorium.");
     }
   };
 
@@ -199,7 +199,7 @@ const advance = async (correct) => {
   };
 
   return <div className="app-shell">
-    <audio ref={audioRef} src="/audio/lobby.mp3.mp3" loop preload="auto" />
+    <audio ref={audioRef} src="/audio/lobby.mp3" loop preload="auto" />
     {celebrate && <div className="celebration" role="status" aria-live="polite">
       <div className="confetti" aria-hidden="true">{Array.from({length: 22}, (_, i) => <span key={i} style={{left: `${(i * 37) % 100}%`, animationDelay: `${(i % 6) * 45}ms`, transform: `rotate(${i * 29}deg)`}} />)}</div>
       <div className="celebration-card"><span className="celebration-check">✓</span><strong>ODGADNIĘTE!</strong><small>+1 PUNKT · NOWE HASŁO</small></div>

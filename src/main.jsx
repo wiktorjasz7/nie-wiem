@@ -251,10 +251,17 @@ const advance = async (correct) => {
         <h1>Wiesz wszystko.<br/><em>Oprócz swojego hasła.</em></h1>
         <p className="intro">Dołącz do znajomych, zobacz ich hasła i spróbuj odkryć, kim lub czym jesteś.</p>
         <div className="panel home-panel">
-          <label>TWÓJ NICK</label>
-          <input value={name} onChange={e=>setName(e.target.value)} placeholder="np. Wiktor" maxLength={18}/>
-          <label className="avatar-picker-label">WYBIERZ AWATAR</label>
-          <div className="avatar-picker">{AVATARS.map(item => <button type="button" key={item} className={"avatar-choice"+(avatar===item?" selected":"")} aria-label={"Wybierz awatar "+item} aria-pressed={avatar===item} onClick={()=>setAvatar(item)}>{item}</button>)}</div>
+          <div className="profile-setup">
+            <div className="profile-name">
+              <label>TWÓJ NICK</label>
+              <input value={name} onChange={e=>setName(e.target.value)} placeholder="np. Wiktor" maxLength={18}/>
+              <div className="profile-preview"><span className="profile-preview-avatar">{avatar}</span><span><small>TWÓJ PROFIL</small><strong>{name.trim() || "Gracz"}</strong></span></div>
+            </div>
+            <aside className="avatar-side-panel">
+              <div className="avatar-panel-heading"><span>WYBIERZ AWATAR</span><small>18 DO WYBORU</small></div>
+              <div className="avatar-picker">{AVATARS.map(item => <button type="button" key={item} className={"avatar-choice"+(avatar===item?" selected":"")} aria-label={"Wybierz awatar "+item} aria-pressed={avatar===item} onClick={()=>setAvatar(item)}>{item}</button>)}</div>
+            </aside>
+          </div>
           <div className="home-actions">
             <div className="action-card">
               <div className="action-icon">✦</div><h2>Stwórz pokój</h2><p>Ty jesteś gospodarzem. Zaproś ekipę kodem.</p>
@@ -303,6 +310,7 @@ const advance = async (correct) => {
             <div className="podium">
               {leaderboard.slice(0,3).map((p,i)=><div className={"podium-place place-"+(i+1)} key={p.id}>
                 <div className="podium-medal">{["🥇","🥈","🥉"][i]}</div>
+                <div className="podium-avatar">{p.avatar || (p.name||"?").slice(0,1).toUpperCase()}</div>
                 <strong>{p.name}</strong><span>{p.score} {p.score === 1 ? "punkt" : p.score < 5 ? "punkty" : "punktów"}</span>
                 <div className="podium-block"><b>{i+1}</b></div>
               </div>)}

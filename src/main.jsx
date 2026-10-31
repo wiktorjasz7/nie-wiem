@@ -271,7 +271,7 @@ const advance = async (correct) => {
             </div>
             <aside className="avatar-side-panel">
               <div className="avatar-panel-heading"><span>WYBIERZ AWATAR</span><small>{AVATARS.length} DO WYBORU</small></div>
-              <select className="avatar-select" aria-label="Wybierz awatar" value={avatar} onChange={e=>setAvatar(e.target.value)}>{AVATARS.map(item => <option key={item} value={item}>{item} {item === "😎" ? "Klasyk" : "Awatar"}</option>)}</select>
+              <select className="avatar-select" aria-label="Wybierz awatar" value={avatar} onChange={e=>setAvatar(e.target.value)}>{AVATARS.map(item => <option key={item} value={item}>{item}</option>)}</select>
             </aside>
           </div>
           <div className="home-actions">

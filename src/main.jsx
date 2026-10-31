@@ -279,6 +279,7 @@ const advance = async (correct) => {
             <div className="section-head"><div><span className="eyebrow">UCZESTNICY</span><h2>Gracze <span className="count">{state.players.length}</span></h2></div><span className="status">{state.status === "finished" ? "KONIEC GRY" : state.status === "playing" ? "GRA W TOKU" : "OCZEKIWANIE"}</span></div>
             <div className="players-grid">{state.players.map((p,i)=><div className={"player "+(p.is_me?"is-me":"")+(state.status === "playing" && p.name === state.current_player_name ? " is-current":"")} key={p.id}>
               <div className="avatar">{(p.name||"?").slice(0,1).toUpperCase()}</div><div className="player-info"><strong>{p.name} {p.is_me && <small>(TY)</small>}</strong><span>{p.score} pkt · {p.is_active ? "w grze" : "odgadł"}</span></div>
+              {p.is_me && myTurn && <span className="my-turn-tag">TWOJA KOLEJ</span>}
               {state.status !== "waiting" && p.is_active && <div className="word">{p.is_me ? <><span className="question">?</span><small>TWOJE HASŁO</small></> : <><strong>{p.word}</strong><small>HASŁO GRACZA</small></>}</div>}
             </div>)}</div>
             {state.status === "waiting" && <div className="lobby-footer"><p>{state.players.length < 3 ? "Najlepiej gra się w 3–8 osób. Możecie zacząć już od 2." : "Ekipa gotowa. Niech rozpocznie się zgadywanie."}</p>{isHost ? <button className="primary" disabled={busy || state.players.length < 2} onClick={start}>Rozpocznij grę <span>→</span></button> : <span className="waiting">Czekamy na gospodarza…</span>}</div>}

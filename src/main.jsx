@@ -344,7 +344,7 @@ const advance = async (correct) => {
           <div className="panel players-panel">
             <div className="section-head"><div><span className="eyebrow">UCZESTNICY</span><h2>Gracze <span className="count">{state.players.length}</span></h2></div><span className="status">{state.status === "finished" ? "KONIEC GRY" : state.status === "playing" ? "GRA W TOKU" : "OCZEKIWANIE"}</span></div>
             <div className="players-grid">{state.players.map((p,i)=><div className={"player "+(p.is_me?"is-me":"")+(state.status === "playing" && p.name === state.current_player_name ? " is-current":"")} key={p.id}>
-              <div className="avatar">{p.avatar || (p.name||"?").slice(0,1).toUpperCase()}</div><div className="player-info"><strong>{p.name} {p.is_me && <small>(TY)</small>}</strong><span>{p.score} pkt · {p.is_active ? "w grze" : "odgadł"}</span></div>
+              <div className="avatar">{p.avatar || (p.name||"?").slice(0,1).toUpperCase()}</div><div className="player-info"><strong>{p.name} {p.is_me && <small>(TY)</small>}</strong><span>{p.score} pkt · {p.is_active ? "w grze" : "odgadł"}</span>{state.game_mode === "teams" && <small className={"team-tag team-"+p.team}>DRUŻYNA {p.team}</small>}</div>
               {p.is_me && myTurn && <span className="my-turn-tag">TWOJA KOLEJ</span>}
               {state.status !== "waiting" && p.is_active && <div className="word">{p.is_me ? <><span className="question">?</span><small>TWOJE HASŁO</small></> : <><strong>{p.word}</strong><small>HASŁO GRACZA</small></>}</div>}
             </div>)}</div>

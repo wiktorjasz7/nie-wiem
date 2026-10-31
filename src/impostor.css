@@ -217,3 +217,13 @@
 .imp-profile-bar-fields .imp-avatar-trigger{width:100%;min-height:44px}
 .imp-profile-bar .imp-avatar-grid{margin-top:15px}
 @media(max-width:600px){.imp-profile-bar{padding:16px}.imp-profile-bar-fields{grid-template-columns:1fr;gap:15px}}
+
+
+/* Wspólne ustawienia motywu i muzyki w nagłówku Impostora */
+.imp-header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.imp-header-right .theme-picker{display:flex;align-items:center;gap:6px}
+.imp-header-right .audio-controls{display:flex;align-items:center;gap:8px}
+.imp-header-right .audio-slider{display:flex;align-items:center;gap:6px}
+.imp-header-right .audio-slider input{width:78px}
+@media(max-width:850px){.imp-header-right .imp-header-label{display:none}.imp-header-right .audio-slider{display:none}}
+@media(max-width:580px){.imp-header-right{gap:5px}.imp-header-right .theme-picker{font-size:0}.imp-header-right .theme-select{max-width:108px}.imp-header-right .audio-toggle{font-size:11px;padding:7px 8px}.imp-header-right .header-clock{display:none}}

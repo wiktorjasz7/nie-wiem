@@ -311,9 +311,9 @@ const advance = async (correct, skipWord = false) => {
               <select value={category} onChange={e=>setCategory(e.target.value)}>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select>
               <label>POZIOM TRUDNOŚCI HASEŁ</label>
               <select value={difficulty} onChange={e=>setDifficulty(e.target.value)}>
-                <option value="easy">Łatwy — popularne i proste</option>
-                <option value="normal">Normalny — trochę trudniejsze</option>
-                <option value="hard">Trudny — mniej oczywiste</option>
+                <option value="easy">Łatwy</option>
+                <option value="normal">Normalny</option>
+                <option value="hard">Trudny</option>
               </select>
               <label>TRYB GRY</label>
               <select value={gameMode} onChange={e=>setGameMode(e.target.value)}>

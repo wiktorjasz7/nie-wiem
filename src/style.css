@@ -334,3 +334,51 @@ html[data-theme="crimson"]{--theme-accent:#e34b5f;--theme-accent-light:#ffabb5;-
  .skipped-reveal-card{padding:28px 18px}
 }
 @media(prefers-reduced-motion:reduce){.skipped-reveal-backdrop,.skipped-reveal-card{animation:none}}
+
+/* Wspólny znacznik kolejki: tylko jeden gracz, identycznie na każdym ekranie. */
+html[data-theme] .players-grid .player.turn-active,
+.players-grid .player.turn-active,
+html[data-theme] .players-grid .player.is-me.turn-active {
+  position:relative;
+  overflow:visible;
+  border:2px solid var(--theme-accent)!important;
+  background:linear-gradient(110deg,rgba(var(--theme-accent-rgb),.25),rgba(var(--theme-accent-rgb),.075))!important;
+  box-shadow:0 0 0 2px rgba(var(--theme-accent-rgb),.26),0 0 30px 4px rgba(var(--theme-accent-rgb),.44),inset 0 0 20px rgba(var(--theme-accent-rgb),.07)!important;
+  animation:turn-glow-pulse 2s ease-in-out infinite!important;
+  z-index:3;
+}
+html[data-theme] .players-grid .player.turn-active::after,
+.players-grid .player.turn-active::after {
+  display:block!important;
+  content:"";
+  position:absolute;
+  top:0;bottom:0;left:0;
+  width:4px;
+  background:var(--theme-accent);
+  border-radius:12px 0 0 12px;
+  box-shadow:0 0 15px rgba(var(--theme-accent-rgb),.9);
+  pointer-events:none;
+}
+.players-grid .player.turn-active .my-turn-tag {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-left:auto;
+  max-width:100%;
+  border:1px solid var(--theme-accent);
+  background:rgba(var(--theme-accent-rgb),.28);
+  color:var(--theme-accent-light);
+  font-weight:900;
+  box-shadow:0 0 12px rgba(var(--theme-accent-rgb),.19);
+}
+@keyframes turn-glow-pulse {
+  0%,100% { box-shadow:0 0 0 2px rgba(var(--theme-accent-rgb),.22),0 0 20px 3px rgba(var(--theme-accent-rgb),.32),inset 0 0 20px rgba(var(--theme-accent-rgb),.07); }
+  50% { box-shadow:0 0 0 3px rgba(var(--theme-accent-rgb),.36),0 0 37px 7px rgba(var(--theme-accent-rgb),.52),inset 0 0 26px rgba(var(--theme-accent-rgb),.12); }
+}
+@media(prefers-reduced-motion:reduce){
+  html[data-theme] .players-grid .player.turn-active{animation:none!important;}
+}
+@media(max-width:560px){
+  .players-grid .player.turn-active{flex-wrap:wrap;row-gap:8px;}
+  .players-grid .player.turn-active .my-turn-tag{font-size:8px;padding:5px 7px;}
+}

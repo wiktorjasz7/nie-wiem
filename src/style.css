@@ -399,3 +399,14 @@ html[data-theme] .players-grid .player.turn-active::after,
 .guess-vote-actions button{min-width:145px}
 .guess-vote-wait{padding:10px 12px;border-radius:9px;background:#ffffff0a}
 @media(max-width:540px){.category-multi-picker{gap:6px}.category-multi-choice{font-size:9px;padding:8px}.guess-vote-actions{flex-direction:column}.guess-vote-actions button{width:100%}}
+
+
+/* Zwijana lista wielu kategorii — oszczędza miejsce w formularzu. */
+.category-dropdown{margin-top:9px;border:1px solid #ffffff25;border-radius:11px;background:#ffffff07;overflow:hidden}
+.category-dropdown-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:43px;padding:12px 13px;color:#f5f2ff;font-size:12px;font-weight:700;cursor:pointer;list-style:none;user-select:none}
+.category-dropdown-summary::-webkit-details-marker{display:none}
+.category-dropdown-summary:focus-visible{outline:2px solid var(--theme-accent);outline-offset:-2px}
+.category-dropdown-arrow{color:var(--theme-accent-light);font-size:19px;transition:transform .2s}
+.category-dropdown[open] .category-dropdown-arrow{transform:rotate(180deg)}
+.category-dropdown .category-multi-picker{display:flex;max-height:210px;overflow-y:auto;flex-wrap:wrap;align-content:flex-start;gap:7px;margin:0;padding:12px;border-top:1px solid #ffffff17}
+.category-summary{margin-top:8px;overflow-wrap:anywhere}

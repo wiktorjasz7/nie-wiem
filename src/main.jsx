@@ -14,7 +14,7 @@ function App() {
     try { return localStorage.getItem("nie-wiem-theme") || "amethyst"; } catch { return "amethyst"; }
   });
   const [name, setName] = useState("");
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(() => new URLSearchParams(window.location.search).get("room")?.toUpperCase() || "");
   const [category, setCategory] = useState("Mieszane");
   const [custom, setCustom] = useState("");
   const [room, setRoom] = useState("");
@@ -260,6 +260,7 @@ const advance = async (correct) => {
               <div className="action-icon">↗</div><h2>Dołącz do gry</h2><p>Masz kod od znajomego? Wbijaj.</p>
               <label>KOD POKOJU</label>
               <input value={code} onChange={e=>setCode(e.target.value.toUpperCase())} placeholder="np. K7P9Q" maxLength={6}/>
+              {new URLSearchParams(window.location.search).has("room") && <p className="invite-hint">Masz zaproszenie! Kod pokoju został uzupełniony automatycznie.</p>}
               <button className="secondary" disabled={busy} onClick={joinRoom}>Dołącz do pokoju <span>→</span></button>
             </div>
           </div>
@@ -269,7 +270,7 @@ const advance = async (correct) => {
 
       {screen === "room" && <section className="room-wrap">
         <div className="room-heading"><div><div className="eyebrow">POKÓJ GRY</div><h1>{state?.status === "finished" ? "Koniec gry." : state?.status === "playing" ? "Czas zgadywać." : "Ekipa się zbiera."}</h1></div>
-          <div className="room-code"><span>KOD DOŁĄCZENIA</span><strong>{room}</strong><button onClick={()=>navigator.clipboard?.writeText(room)}>KOPIUJ</button></div>
+          <div className="room-code"><span>KOD DOŁĄCZENIA</span><strong>{room}</strong><button onClick={()=>navigator.clipboard?.writeText(room)}>KOPIUJ KOD</button><button onClick={()=>navigator.clipboard?.writeText(window.location.origin + "/?room=" + encodeURIComponent(room))}>KOPIUJ LINK ↗</button></div>
         </div>
         {error && <div className="alert">{error}</div>}
         {notice && <div className="notice">{notice}</div>}

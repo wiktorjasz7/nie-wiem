@@ -21,6 +21,7 @@ function App() {
   const [category, setCategory] = useState("Mieszane");
   const [targetScore, setTargetScore] = useState(3);
   const [gameMode, setGameMode] = useState("individual");
+  const [modifiers, setModifiers] = useState({ double_points: false, hard_words: false, limited_skips: false, chaos: false });
   const [custom, setCustom] = useState("");
   const [room, setRoom] = useState("");
   const [token, setToken] = useState("");
@@ -187,7 +188,7 @@ function App() {
   const createRoom = async () => {
     if (!name.trim()) return setError("Wpisz swój nick.");
     const words = custom.split(/[\n,;]/).map(x => x.trim()).filter(Boolean);
-    const data = await run("create_room", { p_name: name.trim(), p_category: category, p_custom_words: words, p_target_score: targetScore, p_game_mode: gameMode });
+    const data = await run("create_room", { p_name: name.trim(), p_category: category, p_custom_words: words, p_target_score: targetScore, p_game_mode: gameMode, p_modifiers: modifiers });
     if (data) enter(data);
   };
   const joinRoom = async () => {
@@ -224,7 +225,7 @@ const advance = async (correct) => {
 
   setNotice(
     correct
-      ? "Hasło odgadnięte! +1 punkt i dostajesz nowe hasło."
+      ? "Hasło odgadnięte! Punkty dodane — dostajesz nowe hasło."
       : "Przekazano kolejkę."
   );
 
@@ -318,6 +319,16 @@ const advance = async (correct) => {
               <select value={targetScore} onChange={e=>setTargetScore(Number(e.target.value))}>
                 {[1,3,5,7,10].map(n=><option key={n} value={n}>{n} {n === 1 ? "punkt" : n < 5 ? "punkty" : "punktów"}</option>)}
               </select>
+              <div className="modifier-section">
+                <div className="modifier-heading"><span>✦ DODATKOWE MODYFIKACJE</span><small>WYBIERZ DOWOLNĄ LICZBĘ</small></div>
+                <div className="modifier-grid">
+                  <label className={"modifier-option"+(modifiers.double_points?" selected":"")}><input type="checkbox" checked={modifiers.double_points} onChange={e=>setModifiers(v=>({...v,double_points:e.target.checked}))}/><span className="modifier-icon">✦</span><span><strong>Podwójne punkty</strong><small>Każde poprawne odgadnięcie daje 2 punkty.</small></span></label>
+                  <label className={"modifier-option"+(modifiers.hard_words?" selected":"")}><input type="checkbox" checked={modifiers.hard_words} onChange={e=>setModifiers(v=>({...v,hard_words:e.target.checked}))}/><span className="modifier-icon">🧠</span><span><strong>Trudne hasła</strong><small>Losowane są dłuższe hasła. Za trafienie: +1 bonus.</small></span></label>
+                  <label className={"modifier-option"+(modifiers.limited_skips?" selected":"")}><input type="checkbox" checked={modifiers.limited_skips} onChange={e=>setModifiers(v=>({...v,limited_skips:e.target.checked}))}/><span className="modifier-icon">↪</span><span><strong>Ograniczone pomijanie</strong><small>Każdy gracz ma tylko jedno pominięcie.</small></span></label>
+                  <label className={"modifier-option chaos-option"+(modifiers.chaos?" selected":"")}><input type="checkbox" checked={modifiers.chaos} onChange={e=>setModifiers(v=>({...v,chaos:e.target.checked}))}/><span className="modifier-icon">☄</span><span><strong>CHAOS</strong><small>Co 3 tury losuje się specjalne wydarzenie.</small></span></label>
+                </div>
+                {modifiers.chaos && <div className="chaos-pool"><strong>W PULI CHAOSU:</strong><span>Zakazane pytanie</span><span>Zmiana perspektywy</span><span>Królewski bonus</span><span>Ostatnia szansa</span><span>Błyskawica</span><span>Zamiana</span><span>Przeklęte hasło</span><span>Totalny reset</span></div>}
+              </div>
               <label>WŁASNE HASŁA <small>(opcjonalnie, oddziel przecinkami lub enterem)</small></label>
               <textarea value={custom} onChange={e=>setCustom(e.target.value)} placeholder="np. wasz nauczyciel&#10;śmieszny tekst z grupy" rows="3"/>
               <button className="primary" disabled={busy} onClick={createRoom}>{busy ? "Chwila..." : "Utwórz pokój"} <span>→</span></button>
@@ -353,8 +364,9 @@ const advance = async (correct) => {
           {state.status === "playing" && <div className="panel turn-panel">
             <div className="eyebrow">AKTUALNA KOLEJKA</div>
             <h2>{state.current_player_name || "Gracz"} {myTurn ? "— Twoja kolej!" : "zadaje pytanie"}</h2>
+            {state.active_event && <div className={"chaos-event chaos-"+state.active_event}><span>☄ WYDARZENIE CHAOSU</span><strong>{{forbidden_question:"ZAKAZANE PYTANIE",perspective:"ZMIANA PERSPEKTYWY",kings_bonus:"KRÓLEWSKI BONUS",last_chance:"OSTATNIA SZANSA",lightning:"BŁYSKAWICA",swap:"ZAMIANA",cursed_word:"PRZEKLĘTE HASŁO",total_reset:"TOTALNY RESET"}[state.active_event]}</strong><p>{{forbidden_question:"Przez tę turę nie zaczynaj pytań od «Czy to…».",perspective:"Zadawaj pytania z zupełnie innej perspektywy.",kings_bonus:"Poprawne odgadnięcie daje podwójne punkty.",last_chance:"Jeśli przekażesz kolejkę, dostajesz jeszcze jedną próbę.",lightning:"Następne poprawne odgadnięcie daje podwójne punkty.",swap:"Kolejność kolejnych tur zostaje zaskakująco przetasowana.",cursed_word:"Po tej turze hasło zostanie przeklęte i zmienione.",total_reset:"Wszystkie hasła zostaną wylosowane od nowa."}[state.active_event]}</p></div>}
             <p>{myTurn ? <>Zadawaj pytania na głos. {state.game_mode === "teams" ? "Twoja drużyna wspólnie zgaduje jedno hasło, a przeciwnicy widzą je i odpowiadają TAK lub NIE." : "Pozostali gracze widzą Twoje hasło i odpowiadają TAK lub NIE."} Możesz przekazać kolejkę albo spróbować odgadnąć hasło.</> : "Odpowiadaj TAK lub NIE na pytania aktualnego gracza. Twoja kolej nadejdzie później."}</p>{state.game_mode === "teams" && <div className="team-score-strip">{teamLeaderboard.map(team=><span key={team.team} className={"team-progress team-"+team.team}><strong>{team.name}</strong><b>{team.score} / {state.target_score || 3} PKT</b></span>)}</div>}
-            {myTurn ? <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>{state.game_mode === "teams" ? "Odgadłem! +1 pkt dla drużyny" : "Odgadłem hasło! +1 pkt"}</button><button className="secondary" onClick={()=>advance(false)} disabled={busy}>Przekaż kolejkę →</button></div> : <div className="waiting-box">Teraz pytanie zadaje: <strong>{state.current_player_name}</strong></div>}
+            {myTurn ? <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>{state.game_mode === "teams" ? "Odgadłem! +1 pkt dla drużyny" : "Odgadłem hasło! +1 pkt"}</button><button className="secondary" onClick={()=>advance(false)} disabled={busy || (state.modifiers?.limited_skips && (me?.skips_used || 0) >= 1)}>Przekaż kolejkę →</button></div> : <div className="waiting-box">Teraz pytanie zadaje: <strong>{state.current_player_name}</strong></div>}
           </div>}
           {state.status === "finished" && <div className="panel results-panel">
             <div className="results-heading"><div className="eyebrow">🏆 GRA ZAKOŃCZONA</div><h2>{state.game_mode === "teams" ? "ZWYCIĘSTWO DRUŻYNY!" : (state.target_score || 3) + " PUNKTÓW. JEDEN ZWYCIĘZCA."}</h2><p><strong>{state.winner_name || state.last_player_name}</strong> {state.game_mode === "teams" ? "zdobywa zwycięstwo dla całej ekipy!" : "zdobywa " + (state.target_score || 3) + " pkt i wygrywa grę!"}</p></div>

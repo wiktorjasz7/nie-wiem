@@ -42,6 +42,8 @@ function App() {
   const [gameMode, setGameMode] = useState("individual");
   const [modifiers, setModifiers] = useState({ double_points: false, chaos: false, random_order: false, guess_voting: true });
   const [custom, setCustom] = useState("");
+  const [editingRoom, setEditingRoom] = useState(false);
+  const [roomDraft, setRoomDraft] = useState(null);
   const [room, setRoom] = useState("");
   const [token, setToken] = useState("");
   const [state, setState] = useState(null);
@@ -275,6 +277,44 @@ function App() {
     const words = custom.split(/[\n,;]/).map(x => x.trim()).filter(Boolean);
     const data = await run("create_room", { p_name: name.trim(), p_category: categories.includes("Mieszane") ? "Mieszane" : categories[0], p_custom_words: words, p_target_score: targetScore, p_game_mode: gameMode, p_modifiers: { ...modifiers, difficulty, categories } });
     if (data) enter(data);
+  };
+  const openRoomSettings = () => {
+    if (!state || !state.is_host || state.status !== "waiting") return;
+    setRoomDraft({
+      categories: Array.isArray(state.modifiers?.categories) && state.modifiers.categories.length ? state.modifiers.categories : [state.category || "Mieszane"],
+      difficulty: state.modifiers?.difficulty || "normal",
+      target_score: state.target_score || 3,
+      game_mode: state.game_mode || "individual",
+      modifiers: {
+        double_points: !!state.modifiers?.double_points,
+        chaos: !!state.modifiers?.chaos,
+        random_order: !!state.modifiers?.random_order,
+        guess_voting: state.modifiers?.guess_voting !== false
+      },
+      custom: Array.isArray(state.custom_words) ? state.custom_words.join("\n") : ""
+    });
+    setEditingRoom(true);
+  };
+  const saveRoomSettings = async () => {
+    if (!roomDraft?.categories?.length) return setError("Wybierz przynajmniej jedną kategorię.");
+    const newWords = [...new Set(roomDraft.custom.split(/[\n,;]/).map(x => x.trim()).filter(Boolean))];
+    const updated = await run("update_room_settings", {
+      p_code: room, p_token: token, p_categories: roomDraft.categories,
+      p_difficulty: roomDraft.difficulty, p_target_score: roomDraft.target_score,
+      p_game_mode: roomDraft.game_mode, p_modifiers: roomDraft.modifiers,
+      p_custom_words: newWords
+    });
+    if (updated) {
+      setEditingRoom(false);
+      setState(prev => prev ? { ...prev,
+        category: roomDraft.categories.includes("Mieszane") ? "Mieszane" : roomDraft.categories[0],
+        target_score: roomDraft.target_score, game_mode: roomDraft.game_mode,
+        modifiers: { ...roomDraft.modifiers, difficulty: roomDraft.difficulty, categories: roomDraft.categories },
+        custom_words: newWords,
+        players: prev.game_mode === roomDraft.game_mode ? prev.players : prev.players.map(p => ({...p,team:null}))
+      } : prev);
+      setNotice("Ustawienia pokoju zostały zapisane.");
+    }
   };
   const joinRoom = async () => {
     if (!name.trim() || !code.trim()) return setError("Wpisz nick i kod pokoju.");
@@ -520,7 +560,47 @@ const advance = async (correct, skipWord = false) => {
               {isHost && !p.is_me && state.status === "waiting" && <button className="kick-player-button" type="button" disabled={busy} onClick={() => kickPlayer(p)}>Wyrzuć</button>}
               {state.status !== "waiting" && p.is_active && <div className="word">{(state.game_mode === "teams" && p.team === me?.team) || p.is_me ? <><span className="question">?</span><small>{state.game_mode === "teams" ? "WASZE HASŁO" : "TWOJE HASŁO"}</small></> : <><strong>{p.word}</strong><small>{state.game_mode === "teams" ? "HASŁO DRUŻYNY" : "HASŁO GRACZA"}</small></>}</div>}
             </div>)}</div>
-            {state.status === "waiting" && state.game_mode === "teams" && <div className="team-choice-panel">
+            {state.status === "waiting" && isHost && !editingRoom && <button type="button" className="secondary edit-room-trigger" onClick={openRoomSettings}>⚙ Edytuj ustawienia pokoju</button>}
+            {state.status === "waiting" && isHost && editingRoom && roomDraft && <div className="room-settings-editor">
+              <div className="modifier-heading"><span>✦ USTAWIENIA POKOJU</span><small>TYLKO GOSPODARZ</small></div>
+              <label>KATEGORIE</label>
+              <details className="category-dropdown">
+                <summary className="category-dropdown-summary">
+                  <span>{roomDraft.categories.includes("Mieszane") ? "Mieszane — wszystkie kategorie" : roomDraft.categories.length === 1 ? roomDraft.categories[0] : "Wybrane kategorie: "+roomDraft.categories.length}</span>
+                  <span className="category-dropdown-arrow" aria-hidden="true">⌄</span>
+                </summary>
+                <div className="category-multi-picker" role="group" aria-label="Kategorie w pokoju">
+                  {CATEGORIES.map(c=><button key={c} type="button" className={"category-multi-choice"+(roomDraft.categories.includes(c)?" selected":"")} aria-pressed={roomDraft.categories.includes(c)}
+                    onClick={()=>setRoomDraft(old=>({...old,categories:old.categories.includes(c)?old.categories.filter(x=>x!==c):c==="Mieszane"?["Mieszane"]:[...old.categories.filter(x=>x!=="Mieszane"),c]}))}>{roomDraft.categories.includes(c)?"✓ ":""}{c}</button>)}
+                </div>
+              </details>
+              <label>POZIOM TRUDNOŚCI HASEŁ</label>
+              <select value={roomDraft.difficulty} onChange={e=>setRoomDraft(old=>({...old,difficulty:e.target.value}))}><option value="easy">Łatwy</option><option value="normal">Normalny</option><option value="hard">Trudny</option></select>
+              <label>TRYB GRY</label>
+              <select value={roomDraft.game_mode} onChange={e=>setRoomDraft(old=>({...old,game_mode:e.target.value}))}><option value="individual">Każdy na siebie</option><option value="teams">Drużynowy — 2 ekipy</option></select>
+              <label>ILE PUNKTÓW DO ZWYCIĘSTWA?</label>
+              <select value={roomDraft.target_score} onChange={e=>setRoomDraft(old=>({...old,target_score:Number(e.target.value)}))}>{[1,3,5,7,10].map(n=><option key={n} value={n}>{n} {n===1?"punkt":n<5?"punkty":"punktów"}</option>)}</select>
+              <div className="modifier-section">
+                <div className="modifier-heading"><span>✦ DODATKOWE MODYFIKACJE</span></div>
+                {[
+                  ["double_points","✦","Podwójne punkty"],
+                  ["chaos","☄","CHAOS"],
+                  ["guess_voting","✓","Głosowanie nad odpowiedzią"],
+                  ["random_order","🎲","Losowa kolejność graczy"]
+                ].map(([key,ico,label])=><label key={key} className={"modifier-option"+(roomDraft.modifiers[key]?" selected":"")}>
+                  <input type="checkbox" checked={!!roomDraft.modifiers[key]} onChange={e=>setRoomDraft(old=>({...old,modifiers:{...old.modifiers,[key]:e.target.checked}}))}/>
+                  <span className="modifier-icon">{ico}</span><span><strong>{label}</strong></span>
+                </label>)}
+              </div>
+              <label>WŁASNE HASŁA <small>(opcjonalnie, oddziel przecinkami lub enterem)</small></label>
+              <textarea rows="3" value={roomDraft.custom} onChange={e=>setRoomDraft(old=>({...old,custom:e.target.value}))} placeholder="Wasze własne hasła"/>
+              <div className="room-settings-actions">
+                <button type="button" className="secondary" disabled={busy} onClick={()=>setEditingRoom(false)}>Anuluj</button>
+                <button type="button" className="primary" disabled={busy || roomDraft.categories.length===0} onClick={saveRoomSettings}>Zapisz ustawienia</button>
+              </div>
+              {roomDraft.game_mode !== state.game_mode && <p className="room-settings-warning">Zmiana trybu gry wyczyści wybór drużyn. Gracze wybiorą je ponownie.</p>}
+            </div>}
+            {state.status === "waiting" && state.game_mode === "teams" && !editingRoom && <div className="team-choice-panel">
               <div className="eyebrow">WYBIERZ SWOJĄ DRUŻYNĘ</div>
               <p>Każdy wybiera ekipę, do której chce dołączyć. Możesz zmienić wybór do rozpoczęcia gry.</p>
               <div className="team-choice-actions">
@@ -531,7 +611,7 @@ const advance = async (correct, skipWord = false) => {
               </div>
               {isHost && !teamsReady && <div className="team-choice-warning">Przed startem każdy musi wybrać drużynę, a w obu ekipach musi być co najmniej jedna osoba.</div>}
             </div>}
-            {state.status === "waiting" && <div className="lobby-footer"><p>{state.game_mode === "teams" ? "Tryb drużynowy: każda ekipa dostaje jedno wspólne hasło, którego nie widzi." : state.players.length < 3 ? "Najlepiej gra się w 3–8 osób. Możecie zacząć już od 2." : "Ekipa gotowa. Niech rozpocznie się zgadywanie."}</p>{isHost ? <button className="primary" disabled={busy || state.players.length < 2 || !teamsReady} onClick={start}>Rozpocznij grę <span>→</span></button> : <span className="waiting">Czekamy na gospodarza…</span>}</div>}
+            {state.status === "waiting" && !editingRoom && <div className="lobby-footer"><p>{state.game_mode === "teams" ? "Tryb drużynowy: każda ekipa dostaje jedno wspólne hasło, którego nie widzi." : state.players.length < 3 ? "Najlepiej gra się w 3–8 osób. Możecie zacząć już od 2." : "Ekipa gotowa. Niech rozpocznie się zgadywanie."}</p>{isHost ? <button className="primary" disabled={busy || state.players.length < 2 || !teamsReady} onClick={start}>Rozpocznij grę <span>→</span></button> : <span className="waiting">Czekamy na gospodarza…</span>}</div>}
           </div>
           {state.status === "playing" && <div className="panel turn-panel">
             <div className="eyebrow">AKTUALNA KOLEJKA</div>

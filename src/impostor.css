@@ -201,3 +201,8 @@
 .imp-hint-card strong{color:#f8d4df}
 .imp-final-hint{margin:7px auto 20px}
 @media(max-width:500px){.imp-lobby-hints{padding:12px;gap:8px}.imp-lobby-hints small{max-width:260px}.imp-hint-card>div{flex-direction:column;align-items:stretch}.imp-hint-card>div>span{width:100%}}
+
+
+/* Jednowyrazowe skojarzenie w miejsce technicznych informacji. */
+.imp-hint-card .imp-association-word{display:block;color:#ffe0e6;font-size:clamp(25px,5vw,39px);line-height:1.15;letter-spacing:-.035em;font-weight:800;overflow-wrap:anywhere;margin:4px 0 3px}
+.imp-final-hint .imp-association-word{font-size:clamp(24px,5vw,36px)}

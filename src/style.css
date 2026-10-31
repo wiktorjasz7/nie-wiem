@@ -127,15 +127,19 @@ body::after{
 @media(prefers-reduced-motion:reduce){body::before,body::after{animation:none}}
 
 
-/* Własna karta nie dostaje poświaty — aktywna kolejka świeci tylko innym graczom */
-.player.is-me,
-html[data-theme] .player.is-me,
-html[data-theme] .player.is-me.is-current{
+/* Neutralna własna karta poza kolejką; poświata TYLKO u aktualnie grającej osoby. */
+.player.is-me:not(.is-current),
+html[data-theme] .player.is-me:not(.is-current){
   border-color:#ffffff0c;
   background:#ffffff06;
   box-shadow:none;
 }
-.player.is-me.is-current:after{display:none}
+/* Aktywna kolejka pozostaje widoczna także na własnej karcie. */
+html[data-theme] .player.is-me.is-current{
+  border-color:var(--theme-accent);
+  background:linear-gradient(110deg,rgba(var(--theme-accent-rgb),.12),#ffffff08);
+  box-shadow:0 0 0 1px rgba(var(--theme-accent-rgb),.13),0 0 24px rgba(var(--theme-accent-rgb),.1);
+}
 
 .my-turn-tag{flex:none;margin-left:auto;padding:6px 9px;border:1px solid var(--theme-accent);border-radius:999px;background:rgba(var(--theme-accent-rgb),.16);color:var(--theme-accent-light);font-size:9px;font-weight:900;letter-spacing:.08em;white-space:nowrap}
 

@@ -445,7 +445,6 @@ const advance = async (correct, skipWord = false) => {
                   </button>)}
                 </div>
               </details>
-              <small className="category-summary">{categories.includes("Mieszane")?"Losowanie ze wszystkich kategorii":categories.length?("Wybrane: "+categories.join(", ")):"Wybierz przynajmniej jedną kategorię"}</small>
               <label>POZIOM TRUDNOŚCI HASEŁ</label>
               <select value={difficulty} onChange={e=>setDifficulty(e.target.value)}>
                 <option value="easy">Łatwy</option>

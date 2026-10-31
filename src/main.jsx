@@ -20,6 +20,7 @@ function App() {
   const [code, setCode] = useState(() => new URLSearchParams(window.location.search).get("room")?.toUpperCase() || "");
   const [category, setCategory] = useState("Mieszane");
   const [targetScore, setTargetScore] = useState(3);
+  const [gameMode, setGameMode] = useState("individual");
   const [custom, setCustom] = useState("");
   const [room, setRoom] = useState("");
   const [token, setToken] = useState("");
@@ -144,6 +145,11 @@ function App() {
   const myTurn = state?.current_player_is_me === true;
   const isHost = state?.is_host;
   const leaderboard = [...(state?.players || [])].sort((a,b) => b.score - a.score || a.seat - b.seat);
+  const teamLeaderboard = ["A","B"].map(team => {
+    const members = (state?.players || []).filter(p => p.team === team);
+    return { team, name: "Drużyna " + team, members, score: members.reduce((sum,p) => sum + p.score, 0), avatar: members[0]?.avatar || "👥" };
+  }).filter(team => team.members.length).sort((a,b) => b.score - a.score || a.team.localeCompare(b.team));
+  const myTeam = state?.game_mode === "teams" ? teamLeaderboard.find(t => t.team === me?.team) : null;
 
   useEffect(() => {
     if (!room || !token || !supabase) return;
@@ -181,7 +187,7 @@ function App() {
   const createRoom = async () => {
     if (!name.trim()) return setError("Wpisz swój nick.");
     const words = custom.split(/[\n,;]/).map(x => x.trim()).filter(Boolean);
-    const data = await run("create_room", { p_name: name.trim(), p_category: category, p_custom_words: words, p_target_score: targetScore });
+    const data = await run("create_room", { p_name: name.trim(), p_category: category, p_custom_words: words, p_target_score: targetScore, p_game_mode: gameMode });
     if (data) enter(data);
   };
   const joinRoom = async () => {
@@ -303,6 +309,11 @@ const advance = async (correct) => {
               <div className="action-icon">✦</div><h2>Stwórz pokój</h2><p>Ty jesteś gospodarzem. Zaproś ekipę kodem.</p>
               <label>KATEGORIA</label>
               <select value={category} onChange={e=>setCategory(e.target.value)}>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select>
+              <label>TRYB GRY</label>
+              <select value={gameMode} onChange={e=>setGameMode(e.target.value)}>
+                <option value="individual">Każdy na siebie</option>
+                <option value="teams">Drużynowy — 2 ekipy</option>
+              </select>
               <label>ILE PUNKTÓW DO ZWYCIĘSTWA?</label>
               <select value={targetScore} onChange={e=>setTargetScore(Number(e.target.value))}>
                 {[1,3,5,7,10].map(n=><option key={n} value={n}>{n} {n === 1 ? "punkt" : n < 5 ? "punkty" : "punktów"}</option>)}
@@ -325,7 +336,7 @@ const advance = async (correct) => {
 
       {screen === "room" && <section className="room-wrap">
         <div className="room-heading"><div><div className="eyebrow">POKÓJ GRY</div><h1>{state?.status === "finished" ? "Mamy zwycięzcę!" : state?.status === "playing" ? "Czas zgadywać." : "Ekipa się zbiera."}</h1></div>
-          <div className="room-code"><span>CEL GRY: {state?.target_score || 3} PKT</span><span>KOD DOŁĄCZENIA</span><strong>{room}</strong><button onClick={()=>navigator.clipboard?.writeText(room)}>KOPIUJ KOD</button><button onClick={()=>navigator.clipboard?.writeText(window.location.origin + "/?room=" + encodeURIComponent(room))}>KOPIUJ LINK ↗</button></div>
+          <div className="room-code"><span>{state?.game_mode === "teams" ? "TRYB DRUŻYNOWY" : "TRYB INDYWIDUALNY"} · CEL: {state?.target_score || 3} PKT</span><span>KOD DOŁĄCZENIA</span><strong>{room}</strong><button onClick={()=>navigator.clipboard?.writeText(room)}>KOPIUJ KOD</button><button onClick={()=>navigator.clipboard?.writeText(window.location.origin + "/?room=" + encodeURIComponent(room))}>KOPIUJ LINK ↗</button></div>
         </div>
         {error && <div className="alert">{error}</div>}
         {notice && <div className="notice">{notice}</div>}
@@ -337,26 +348,28 @@ const advance = async (correct) => {
               {p.is_me && myTurn && <span className="my-turn-tag">TWOJA KOLEJ</span>}
               {state.status !== "waiting" && p.is_active && <div className="word">{p.is_me ? <><span className="question">?</span><small>TWOJE HASŁO</small></> : <><strong>{p.word}</strong><small>HASŁO GRACZA</small></>}</div>}
             </div>)}</div>
-            {state.status === "waiting" && <div className="lobby-footer"><p>{state.players.length < 3 ? "Najlepiej gra się w 3–8 osób. Możecie zacząć już od 2." : "Ekipa gotowa. Niech rozpocznie się zgadywanie."}</p>{isHost ? <button className="primary" disabled={busy || state.players.length < 2} onClick={start}>Rozpocznij grę <span>→</span></button> : <span className="waiting">Czekamy na gospodarza…</span>}</div>}
+            {state.status === "waiting" && <div className="lobby-footer"><p>{state.game_mode === "teams" ? "Tryb drużynowy: gracze są automatycznie dzieleni na dwie ekipy." : state.players.length < 3 ? "Najlepiej gra się w 3–8 osób. Możecie zacząć już od 2." : "Ekipa gotowa. Niech rozpocznie się zgadywanie."}</p>{isHost ? <button className="primary" disabled={busy || state.players.length < 2} onClick={start}>Rozpocznij grę <span>→</span></button> : <span className="waiting">Czekamy na gospodarza…</span>}</div>}
           </div>
           {state.status === "playing" && <div className="panel turn-panel">
             <div className="eyebrow">AKTUALNA KOLEJKA</div>
             <h2>{state.current_player_name || "Gracz"} {myTurn ? "— Twoja kolej!" : "zadaje pytanie"}</h2>
-            <p>{myTurn ? "Zadawaj pytania na głos. Pozostali gracze widzą Twoje hasło i odpowiadają TAK lub NIE. Możesz przekazać kolejkę albo spróbować odgadnąć hasło." : "Odpowiadaj TAK lub NIE na pytania aktualnego gracza. Twoja kolej nadejdzie później."}</p>
-            {myTurn ? <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>Odgadłem hasło! +1 pkt</button><button className="secondary" onClick={()=>advance(false)} disabled={busy}>Przekaż kolejkę →</button></div> : <div className="waiting-box">Teraz pytanie zadaje: <strong>{state.current_player_name}</strong></div>}
+            <p>{myTurn ? "Zadawaj pytania na głos. Pozostali gracze widzą Twoje hasło i odpowiadają TAK lub NIE. Możesz przekazać kolejkę albo spróbować odgadnąć hasło." : "Odpowiadaj TAK lub NIE na pytania aktualnego gracza. Twoja kolej nadejdzie później."}</p>{state.game_mode === "teams" && <div className="team-score-strip"><span>🏅 TWOJA DRUŻYNA: <strong>{myTeam?.name || "—"}</strong></span><strong>{myTeam?.score || 0} / {state.target_score || 3} PKT</strong></div>}
+            {myTurn ? <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>{state.game_mode === "teams" ? "Odgadłem! +1 pkt dla drużyny" : "Odgadłem hasło! +1 pkt"}</button><button className="secondary" onClick={()=>advance(false)} disabled={busy}>Przekaż kolejkę →</button></div> : <div className="waiting-box">Teraz pytanie zadaje: <strong>{state.current_player_name}</strong></div>}
           </div>}
           {state.status === "finished" && <div className="panel results-panel">
-            <div className="results-heading"><div className="eyebrow">🏆 GRA ZAKOŃCZONA</div><h2>{state.target_score || 3} {state.target_score === 1 ? "PUNKT" : "PUNKTÓW"}. JEDEN ZWYCIĘZCA.</h2><p><strong>{state.winner_name || state.last_player_name}</strong> zdobywa {state.target_score || 3} {state.target_score === 1 ? "punkt" : state.target_score < 5 ? "punkty" : "punktów"} i wygrywa grę!</p></div>
+            <div className="results-heading"><div className="eyebrow">🏆 GRA ZAKOŃCZONA</div><h2>{state.game_mode === "teams" ? "ZWYCIĘSTWO DRUŻYNY!" : (state.target_score || 3) + " PUNKTÓW. JEDEN ZWYCIĘZCA."}</h2><p><strong>{state.winner_name || state.last_player_name}</strong> {state.game_mode === "teams" ? "zdobywa zwycięstwo dla całej ekipy!" : "zdobywa " + (state.target_score || 3) + " pkt i wygrywa grę!"}</p></div>
             <div className="podium">
-              {leaderboard.slice(0,3).map((p,i)=><div className={"podium-place place-"+(i+1)} key={p.id}>
+              {(state.game_mode === "teams" ? teamLeaderboard : leaderboard.slice(0,3)).map((item,i)=><div className={"podium-place place-"+(i+1)} key={state.game_mode === "teams" ? item.team : item.id}>
                 <div className="podium-medal">{["🥇","🥈","🥉"][i]}</div>
-                <div className="podium-avatar">{p.avatar || (p.name||"?").slice(0,1).toUpperCase()}</div>
-                <strong>{p.name}</strong><span>{p.score} {p.score === 1 ? "punkt" : p.score < 5 ? "punkty" : "punktów"}</span>
+                <div className="podium-avatar">{state.game_mode === "teams" ? item.avatar : (item.avatar || (item.name||"?").slice(0,1).toUpperCase())}</div>
+                <strong>{state.game_mode === "teams" ? item.name : item.name}</strong><span>{item.score} {item.score === 1 ? "punkt" : item.score < 5 ? "punkty" : "punktów"}</span>
                 <div className="podium-block"><b>{i+1}</b></div>
               </div>)}
             </div>
-            <div className="final-scores"><div className="eyebrow">KOŃCOWA TABELA WYNIKÓW</div>
-              {leaderboard.map((p,i)=><div className="score-row" key={p.id}><span className="score-rank">{i+1}.</span><strong>{p.name}{p.is_me ? " (TY)" : ""}</strong><span>{p.score} pkt</span></div>)}
+            <div className="final-scores"><div className="eyebrow">{state.game_mode === "teams" ? "WYNIKI DRUŻYN" : "KOŃCOWA TABELA WYNIKÓW"}</div>
+              {state.game_mode === "teams"
+                ? teamLeaderboard.map((team,i)=><div className="score-row" key={team.team}><span className="score-rank">{i+1}.</span><strong>{team.name} · {team.members.map(p=>p.name).join(", ")}</strong><span>{team.score} pkt</span></div>)
+                : leaderboard.map((p,i)=><div className="score-row" key={p.id}><span className="score-rank">{i+1}.</span><strong>{p.name}{p.is_me ? " (TY)" : ""}</strong><span>{p.score} pkt</span></div>)}
             </div>
             <div className="replay-actions">
               {isHost ? <button className="primary" onClick={start} disabled={busy}>Zagrajcie ponownie <span>↻</span></button> : <div className="waiting-box">Czekamy, aż gospodarz rozpocznie rewanż…</div>}

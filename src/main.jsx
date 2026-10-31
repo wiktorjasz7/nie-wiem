@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { createClient } from "@supabase/supabase-js";
 import "./style.css";
+import ImpostorApp from "./impostor.jsx";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -25,7 +26,7 @@ const getSavedSession = () => {
   } catch { return null; }
 };
 
-function App() {
+function App({ onBack }) {
   const [screen, setScreen] = useState("home");
   const [restoring, setRestoring] = useState(() => !!getSavedSession());
   const [revealedWord, setRevealedWord] = useState(null);
@@ -422,6 +423,7 @@ const advance = async (correct, skipWord = false) => {
       <div className="celebration-card"><span className="celebration-check">✓</span><strong>ODGADNIĘTE!</strong><small>PUNKTY · NOWE HASŁO</small></div>
     </div>}
     <header className="topbar">
+      {screen === "home" && !restoring && <button className="hub-nav-link" onClick={onBack}>← GRY</button>}
       <button className="brand" onClick={leave}><span className="brand-mark">?</span><span>CZÓŁKO<span className="brand-dot">.</span></span></button>
       <div className="topbar-tools">
         <label className="theme-picker">KOLORY
@@ -662,4 +664,56 @@ const advance = async (correct, skipWord = false) => {
   </div>;
 }
 
-createRoot(document.getElementById("root")).render(<App />);
+
+function GamesHub({ onChoose }) {
+  return <div className="app-shell">
+    <header className="topbar">
+      <div className="brand"><span className="brand-mark">✦</span><span>GRAJMY<span className="brand-dot">.</span></span></div>
+      <span className="hub-top-label">DWIE GRY · JEDNA EKIPA</span>
+    </header>
+    <main className="hub-main">
+      <section className="hub-hero">
+        <div className="eyebrow"><span className="pulse"/> GRAJ ZE ZNAJOMYMI</div>
+        <h1>Wybierz grę. <em>Zacznijcie zabawę.</em></h1>
+        <p>Dwie gry imprezowe, jeden klimat. Stwórz pokój, wyślij link i grajcie na swoich telefonach lub komputerach.</p>
+      </section>
+      <section className="hub-grid" aria-label="Wybierz grę">
+        <button className="hub-game" onClick={()=>onChoose("czolko")}>
+          <span className="hub-id">01 / ZGADYWANIE HASEŁ</span>
+          <span className="hub-art" aria-hidden="true">🤔</span>
+          <h2>CZÓŁKO</h2>
+          <p>Wszyscy widzą Twoje hasło oprócz Ciebie. Zadawaj pytania i odgadnij, kim lub czym jesteś.</p>
+          <span className="hub-go">Zagraj w CZÓŁKO <span aria-hidden="true">→</span></span>
+        </button>
+        <button className="hub-game imp-hub-game" onClick={()=>onChoose("impostor")}>
+          <span className="hub-id">02 / BLEF I DEDUKCJA</span>
+          <span className="hub-art" aria-hidden="true">🕵️</span>
+          <h2>IMPOSTOR</h2>
+          <p>Jedna osoba nie zna hasła. Podawajcie skojarzenia, głosujcie i odkryjcie, kto blefuje.</p>
+          <span className="hub-go">Zagraj w IMPOSTORA <span aria-hidden="true">→</span></span>
+        </button>
+      </section>
+      <p className="hub-footer-note">Bez pobierania · pokoje dla znajomych · każda osoba na własnym ekranie</p>
+    </main>
+    <footer><span>GRAJMY<span className="brand-dot">.</span> — GRY DLA EKIPY</span><span>GRAJ FAIR. ŚMIEJ SIĘ GŁOŚNO.</span></footer>
+  </div>;
+}
+
+function Launcher() {
+  const [active, setActive] = useState(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.has("impostor")) return "impostor";
+    if (q.has("room")) return "czolko";
+    try {
+      if (sessionStorage.getItem("impostor-room-session-v1")) return "impostor";
+      if (sessionStorage.getItem("czolko-room-session-v2")) return "czolko";
+    } catch {}
+    return "hub";
+  });
+  if (active === "czolko") return <App onBack={()=>setActive("hub")} />;
+  if (active === "impostor") return <ImpostorApp supabase={supabase} onBack={()=>setActive("hub")} categories={CATEGORIES} avatars={AVATARS} />;
+  return <GamesHub onChoose={setActive}/>;
+}
+
+createRoot(document.getElementById("root")).render(<Launcher />);
+

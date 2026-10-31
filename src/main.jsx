@@ -432,13 +432,19 @@ const advance = async (correct, skipWord = false) => {
             <div className="action-card">
               <div className="action-icon">✦</div><h2>Stwórz pokój</h2><p>Ty jesteś gospodarzem. Zaproś ekipę kodem.</p>
               <label>KATEGORIE <small>· możesz wybrać kilka</small></label>
-              <div className="category-multi-picker" role="group" aria-label="Kategorie haseł">
-                {CATEGORIES.map(c=><button key={c} type="button" aria-pressed={categories.includes(c)}
-                  className={"category-multi-choice"+(categories.includes(c)?" selected":"")}
-                  onClick={()=>setCategories(prev=>prev.includes(c)?prev.filter(x=>x!==c):c==="Mieszane"?["Mieszane"]:[...prev.filter(x=>x!=="Mieszane"),c])}>
-                  {categories.includes(c)?"✓ ":""}{c}
-                </button>)}
-              </div>
+              <details className="category-dropdown">
+                <summary className="category-dropdown-summary">
+                  <span>{categories.includes("Mieszane") ? "Mieszane — wszystkie kategorie" : categories.length === 0 ? "Wybierz kategorie" : categories.length === 1 ? categories[0] : "Wybrane kategorie: " + categories.length}</span>
+                  <span className="category-dropdown-arrow" aria-hidden="true">⌄</span>
+                </summary>
+                <div className="category-multi-picker" role="group" aria-label="Kategorie haseł">
+                  {CATEGORIES.map(c=><button key={c} type="button" aria-pressed={categories.includes(c)}
+                    className={"category-multi-choice"+(categories.includes(c)?" selected":"")}
+                    onClick={()=>setCategories(prev=>prev.includes(c)?prev.filter(x=>x!==c):c==="Mieszane"?["Mieszane"]:[...prev.filter(x=>x!=="Mieszane"),c])}>
+                    {categories.includes(c)?"✓ ":""}{c}
+                  </button>)}
+                </div>
+              </details>
               <small className="category-summary">{categories.includes("Mieszane")?"Losowanie ze wszystkich kategorii":categories.length?("Wybrane: "+categories.join(", ")):"Wybierz przynajmniej jedną kategorię"}</small>
               <label>POZIOM TRUDNOŚCI HASEŁ</label>
               <select value={difficulty} onChange={e=>setDifficulty(e.target.value)}>

@@ -41,3 +41,24 @@ footer{border-top:1px solid #ffffff12;padding:22px 0;display:flex;justify-conten
   100% { opacity: 0; }
 }
 
+
+
+/* Odtwarzacz muzyki i efekty */
+.topbar-tools{display:flex;align-items:center;gap:22px}
+.audio-controls{display:flex;align-items:center;gap:13px}
+.audio-toggle{border:1px solid #9b82dc66;background:#a58aff16;color:#d7caff;border-radius:9px;padding:8px 11px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s,border-color .2s}
+.audio-toggle:hover{background:#a58aff2b;border-color:#b69cff}
+.audio-slider{display:flex;align-items:center;gap:7px;margin:0;color:#89869e;font-size:9px;white-space:nowrap}
+.audio-slider input{width:68px;height:4px;padding:0;accent-color:#a58aff;cursor:pointer}
+@media(max-width:760px){
+  .topbar{height:auto;min-height:72px;gap:12px;padding:12px 0;align-items:flex-start}
+  .topbar-tools{align-items:flex-end;flex-direction:column;gap:7px}
+  .audio-controls{gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .audio-slider input{width:48px}
+  .top-tag{font-size:8px}
+}
+@media(max-width:430px){
+  .audio-controls{max-width:230px}
+  .audio-toggle{padding:7px 8px;font-size:9px}
+  .audio-slider{font-size:8px}
+}

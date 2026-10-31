@@ -79,12 +79,15 @@ end $$;
 
 create or replace function public.start_game(p_code text,p_token uuid)
 returns jsonb language plpgsql security definer set search_path=public as $$
-declare v_room rooms%rowtype; v_count integer; v_words text[];
+declare
+  v_room rooms%rowtype;
+  v_count integer;
+  v_words text[];
 begin
   select * into v_room from rooms where code=upper(trim(p_code)) for update;
   if not found then raise exception 'Nie znaleziono pokoju.'; end if;
-  if v_room.host_token <> p_token then raise exception 'Tylko gospodarz może rozpocząć grę.'; end if;
-  if v_room.status <> 'waiting' then raise exception 'Gra już trwa.'; end if;
+  if v_room.host_token <> p_token then raise exception 'Tylko gospodarz może rozpocząć lub zrestartować grę.'; end if;
+  if v_room.status not in ('waiting','finished') then raise exception 'Gra już trwa.'; end if;
   select count(*) into v_count from players where room_id=v_room.id;
   if v_count < 2 then raise exception 'Potrzeba co najmniej 2 graczy.'; end if;
   select array_agg(word order by random()) into v_words from (
@@ -93,11 +96,16 @@ begin
       union all select unnest(v_room.custom_words)
     ) s
   ) q;
-  if coalesce(array_length(v_words,1),0) < v_count then raise exception 'Za mało różnych haseł. Dodaj własne słowa lub wybierz inną kategorię.'; end if;
+  if coalesce(array_length(v_words,1),0) < v_count then
+    raise exception 'Za mało różnych haseł. Dodaj własne słowa lub wybierz inną kategorię.';
+  end if;
   with ordered as (select id,row_number() over(order by seat) rn from players where room_id=v_room.id)
-  update players p set word=v_words[o.rn],score=0 from ordered o where p.id=o.id;
-  update rooms set status='playing',current_turn=1,winner_name=null where id=v_room.id;
-  return jsonb_build_object('ok',true);
+  update players p set word=v_words[o.rn],score=0,is_active=true from ordered o where p.id=o.id;
+  update rooms set status='playing',
+    current_turn=(select min(seat) from players where room_id=v_room.id),
+    winner_name=null
+  where id=v_room.id;
+  return jsonb_build_object('ok',true,'restarted',v_room.status='finished');
 end $$;
 
 create or replace function public.get_game_state(p_code text,p_token uuid)

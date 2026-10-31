@@ -292,3 +292,41 @@ html[data-theme="crimson"]{--theme-accent:#e34b5f;--theme-accent-light:#ffabb5;-
 @keyframes chaos-event-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:520px){.modifier-grid{grid-template-columns:1fr}.chaos-option{grid-column:auto}.modifier-heading{align-items:flex-start;flex-direction:column}.modifier-heading small{text-align:left}}
 
+
+
+/* CZÓŁKO: samodzielny wybór drużyn, moderacja pokoju i odkrywanie pominiętego hasła */
+.restore-status{max-width:600px;margin:70px auto}
+.team-choice-panel{margin-top:18px;padding:18px;border:1px solid rgba(var(--theme-accent-rgb),.3);border-radius:14px;background:linear-gradient(130deg,rgba(var(--theme-accent-rgb),.08),#ffffff04)}
+.team-choice-panel .eyebrow{justify-content:flex-start}
+.team-choice-panel p{margin:9px 0 16px;color:#a9a4bb;font-size:12px;line-height:1.55}
+.team-choice-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.team-choice-button{display:flex;flex-direction:column;align-items:flex-start;gap:7px;padding:14px 15px;border:1px solid #ffffff21;border-radius:12px;background:#ffffff06;color:#f4f2ff;text-align:left;cursor:pointer;transition:transform .17s,border-color .17s,background .17s}
+.team-choice-button strong{font-size:13px}
+.team-choice-button small{font-size:10px;color:#9e98b5}
+.team-choice-button:hover:not(:disabled){transform:translateY(-2px);background:#ffffff0f}
+.team-choice-button.selected{border-color:var(--theme-accent);background:rgba(var(--theme-accent-rgb),.16);box-shadow:inset 0 0 0 1px rgba(var(--theme-accent-rgb),.13)}
+.team-choice-button.selected strong{color:var(--theme-accent-light)}
+.team-choice-B.selected{border-color:#77cce9;background:rgba(65,172,218,.13)}
+.team-choice-B.selected strong{color:#a5e6f8}
+.team-choice-warning{margin-top:13px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,194,123,.25);background:rgba(255,178,97,.075);font-size:10px;line-height:1.5;color:#f4ca9c}
+.team-unassigned{color:#aca6ba!important;background:#ffffff0b;border:1px solid #ffffff20}
+.kick-player-button{flex:none;align-self:center;margin-left:auto;padding:7px 9px;border:1px solid rgba(255,139,152,.28);border-radius:8px;background:rgba(205,63,82,.09);font-size:10px;font-weight:800;color:#ff9eac;cursor:pointer}
+.kick-player-button:hover:not(:disabled){border-color:#ff9eac;background:rgba(205,63,82,.17)}
+.kick-player-button:disabled,.team-choice-button:disabled{opacity:.45;cursor:not-allowed}
+.player .kick-player-button+.word{margin-left:0}
+.skipped-reveal-backdrop{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:18px;background:rgba(7,7,16,.86);backdrop-filter:blur(9px);animation:skipped-reveal-in .22s ease-out both}
+.skipped-reveal-card{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(100%,480px);padding:32px 24px;border:1px solid rgba(var(--theme-accent-rgb),.55);border-radius:23px;background:linear-gradient(145deg,#29213ded,#12111af6);box-shadow:0 20px 80px #000c,0 0 55px rgba(var(--theme-accent-rgb),.18);text-align:center;animation:skipped-card-in .38s cubic-bezier(.17,.9,.3,1) both}
+.skipped-reveal-eyebrow{color:var(--theme-accent-light);font-family:"DM Mono",monospace;font-size:10px;font-weight:800;letter-spacing:.13em}
+.skipped-reveal-card>strong{max-width:100%;margin:10px 0;font-size:clamp(27px,6vw,46px);line-height:1.15;overflow-wrap:anywhere;color:#fff}
+.skipped-reveal-card>p{margin:0;color:#d2bedc;font-size:13px}
+.skipped-reveal-card>.primary{margin-top:12px;min-width:min(100%,230px)}
+.skipped-reveal-card>small{max-width:300px;color:#9893aa;font-size:10px;line-height:1.5}
+@keyframes skipped-reveal-in{from{opacity:0}to{opacity:1}}
+@keyframes skipped-card-in{from{opacity:0;transform:translateY(17px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:540px){
+ .team-choice-panel{padding:14px}
+ .team-choice-button{padding:12px}
+ .kick-player-button{padding:6px 7px;font-size:9px}
+ .skipped-reveal-card{padding:28px 18px}
+}
+@media(prefers-reduced-motion:reduce){.skipped-reveal-backdrop,.skipped-reveal-card{animation:none}}

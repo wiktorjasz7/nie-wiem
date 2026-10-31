@@ -155,11 +155,13 @@ function App() {
   };
 
   const enter = async (data) => {
-    setRoom(data.code); setToken(data.token); setScreen("room");
-    setCode(data.code);
     try { localStorage.setItem("nie-wiem-avatar", avatar); } catch {}
     const { error: avatarError } = await supabase.rpc("set_player_avatar", { p_code: data.code, p_token: data.token, p_avatar: avatar });
     if (avatarError) setError(avatarError.message);
+    setCode(data.code);
+    setRoom(data.code);
+    setToken(data.token);
+    setScreen("room");
   };
 
   const createRoom = async () => {

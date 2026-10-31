@@ -178,7 +178,18 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
     if (result) {
       setGuessOpen(false);
       setGuess("");
-      setNotice(result.correct ? "Trafione! Impostor zgadł hasło i wygrywa." : "To nie było właściwe hasło. Próba została wykorzystana — nadal możesz wygrać przez blef.");
+      setNotice(result.correct ? "Trafione! Impostor zgadł hasło i wygrywa." :
+        result.final_guess ? "Ostatnia próba nieudana — wygrywają pozostali gracze." :
+        "To nie było właściwe hasło. Próba została wykorzystana — nadal możesz wygrać przez blef.");
+    }
+  };
+
+  const declineFinalGuess = async () => {
+    const result = await rpc("imp_decline_last_guess", { p_code: room, p_token: token });
+    if (result) {
+      setGuess("");
+      setGuessOpen(false);
+      setNotice("Impostor rezygnuje z ostatniej próby. Wygrywają pozostali gracze.");
     }
   };
 
@@ -260,7 +271,7 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
       {screen === "room" && <section className="imp-room">
         <div className="imp-room-heading">
           <div><div className="eyebrow">◈ POKÓJ IMPOSTORA</div>
-            <h1>{state?.status === "waiting"?"Zbierzcie ekipę.":state?.status==="finished"?"Maski opadły.":"Komu ufasz?"}</h1>
+            <h1>{state?.status === "waiting"?"Zbierzcie ekipę.":state?.status==="finished"?"Maski opadły.":state?.status==="last_guess"?"Ostatnia szansa.":"Komu ufasz?"}</h1>
             <p>{state?.category || "Mieszane"} · {({easy:"łatwe",normal:"normalne",hard:"trudne"})[state?.difficulty] || "normalne"} hasła</p>
           </div>
           <div className="imp-code-card">
@@ -289,7 +300,7 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
             </div>}
           </section>
 
-          {state.status!=="waiting" && state.status!=="finished" && <section className={"imp-role-card"+(reveal && state.role==="impostor"?" is-impostor":"")}>
+          {state.status!=="waiting" && state.status!=="finished" && state.status!=="last_guess" && <section className={"imp-role-card"+(reveal && state.role==="impostor"?" is-impostor":"")}>
             {!reveal ? <div className="imp-role-hidden">
               <span className="imp-role-icon">⌑</span>
               <div><span>TAJNA KARTA</span><strong>Twoja rola jest ukryta</strong><p>Odkryj ją tak, żeby inni nie zobaczyli ekranu.</p></div>
@@ -345,11 +356,33 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
               </div>}
           </section>}
 
+          {state.status==="last_guess" && <section className="panel imp-stage imp-final-guess">
+            <div className="eyebrow">◈ OSTATNIA SZANSA IMPOSTORA</div>
+            <div className="imp-final-guess-icon" aria-hidden="true">⌑</div>
+            <h2>{state.role==="impostor" ? "Zdemaskowano Cię. Znasz hasło?" : "Impostor został zdemaskowany!"}</h2>
+            <p>{state.role==="impostor"
+              ? "Gracze wskazali Cię poprawnie, ale możesz jeszcze wygrać. Odgadnij tajne hasło lub zrezygnuj z próby."
+              : "Wskazaliście "+(state.impostor_name||"impostora")+". Teraz ma jeszcze jedną szansę odgadnąć hasło. Jeśli się pomyli lub zrezygnuje, wygrywacie."}</p>
+            {state.role==="impostor" ?
+              <form onSubmit={makeGuess} className="imp-guess-form imp-final-guess-form">
+                <input maxLength={80} autoComplete="off" value={guess} onChange={e=>setGuess(e.target.value)}
+                  placeholder="Jak brzmi tajne hasło?" aria-label="Ostatnia próba odgadnięcia hasła"/>
+                <div>
+                  <button type="submit" className="primary" disabled={busy || !guess.trim()}>✦ Zgaduję hasło</button>
+                  <button type="button" className="secondary" disabled={busy} onClick={declineFinalGuess}>Rezygnuję</button>
+                </div>
+              </form> :
+              <div className="waiting-box">Czekamy na decyzję impostora: <strong>{state.impostor_name || "impostor"}</strong></div>}
+          </section>}
+
           {state.status==="finished" && <section className={"panel imp-results"+(state.winner==="impostor"?" imp-winner":"")}>
             <div className="eyebrow">◈ KONIEC ROZGRYWKI</div>
             <span className="imp-trophy">{state.winner==="crew"?"🏆":"◈"}</span>
             <h2>{state.winner==="crew"?"GRACZE WYGRYWAJĄ!":"IMPOSTOR WYGRYWA!"}</h2>
-            <p>{state.reason==="guessed"?"Impostor poprawnie odgadł tajne hasło." : state.reason==="caught"?"Ekipa prawidłowo wskazała impostora.": "Impostor uniknął wykrycia."}</p>
+            <p>{state.reason==="guessed"?"Impostor odgadł hasło w trakcie gry." :
+              state.reason==="last_guess_correct"?"Impostor został wykryty, ale odgadł hasło w ostatniej chwili!" :
+              state.reason==="caught"?"Ekipa poprawnie wskazała impostora, który nie odgadł hasła." :
+              "Impostor uniknął wykrycia."}</p>
             <div className="imp-reveal-grid">
               <div><span>TAJNE HASŁO</span><strong>{state.secret_word}</strong></div>
               <div><span>IMPOSTOR</span><strong>{state.impostor_name}</strong></div>

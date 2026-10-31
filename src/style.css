@@ -173,3 +173,23 @@ html[data-theme] .player.is-me.is-current{
 .avatar-choice.selected{border-color:var(--theme-accent);background:rgba(var(--theme-accent-rgb),.2);box-shadow:0 0 0 2px rgba(var(--theme-accent-rgb),.12)}
 .player .avatar{font-size:23px;display:grid;place-items:center}
 @media(max-width:500px){.avatar-choice{width:39px;height:39px}}
+
+
+/* Profil i awatary w bocznym panelu — bez nakładania na ekran */
+.profile-setup{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:stretch;margin-bottom:20px}
+.profile-name{min-width:0;display:flex;flex-direction:column;justify-content:flex-start}
+.profile-name>label{margin-top:0}
+.profile-preview{display:flex;align-items:center;gap:11px;margin-top:18px;padding:12px;border:1px solid #ffffff10;border-radius:12px;background:#ffffff05}
+.profile-preview-avatar{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:rgba(var(--theme-accent-rgb),.2);font-size:25px}
+.profile-preview>span:last-child{display:flex;flex-direction:column;gap:4px}
+.profile-preview small,.avatar-panel-heading{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:.1em;color:#89869e}
+.profile-preview strong{font-size:13px;color:#f5f2ff}
+.avatar-side-panel{padding:14px;border:1px solid rgba(var(--theme-accent-rgb),.22);border-radius:14px;background:rgba(var(--theme-accent-rgb),.045);min-width:0}
+.avatar-panel-heading{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:12px;color:var(--theme-accent-light)}
+.avatar-panel-heading small{font-size:8px;color:#777488;white-space:nowrap}
+.avatar-picker{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;margin:0}
+.avatar-choice{width:100%;height:37px;border-radius:10px;font-size:20px}
+.podium-avatar{width:58px;height:58px;display:grid;place-items:center;border-radius:18px;border:1px solid rgba(var(--theme-accent-rgb),.35);background:linear-gradient(145deg,rgba(var(--theme-accent-rgb),.24),rgba(var(--theme-accent-rgb),.08));font-size:34px;box-shadow:0 8px 24px rgba(var(--theme-accent-rgb),.1)}
+.podium-place.place-1 .podium-avatar{width:68px;height:68px;font-size:40px;border-radius:21px}
+@media(max-width:650px){.profile-setup{grid-template-columns:1fr}.avatar-side-panel{max-width:none}.avatar-picker{grid-template-columns:repeat(9,minmax(0,1fr))}.profile-preview{margin-top:12px}}
+@media(max-width:420px){.avatar-picker{grid-template-columns:repeat(6,minmax(0,1fr))}.avatar-choice{height:40px}}

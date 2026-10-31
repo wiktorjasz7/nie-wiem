@@ -41,17 +41,3 @@ footer{border-top:1px solid #ffffff12;padding:22px 0;display:flex;justify-conten
   100% { opacity: 0; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .player,
-  .player.is-current:after,
-  .celebration,
-  .celebration-card,
-  .confetti span {
-    animation: none !important;
-    transition: none !important;
-  }
-
-  .celebration {
-    display: none;
-  }
-}

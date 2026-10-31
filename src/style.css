@@ -163,3 +163,13 @@ html[data-theme] .player.is-me.is-current{
 .score-row>span:last-child{color:#c5b4ff;font-weight:800}
 .results-note{text-align:center;color:#777488;font-size:10px;margin:20px 0 0}
 @media(max-width:500px){.results-panel{padding:22px 14px}.podium{gap:6px}.podium-medal{font-size:25px}.podium-place>strong{font-size:11px}.podium-block{border-radius:9px 9px 0 0}}
+
+
+/* Wybór awatara w lobby startowym */
+.avatar-picker-label{display:block;margin-top:16px}
+.avatar-picker{display:flex;flex-wrap:wrap;gap:8px;margin:9px 0 4px}
+.avatar-choice{width:42px;height:42px;padding:0;border:1px solid #ffffff18;border-radius:12px;background:#ffffff08;font-size:22px;cursor:pointer;transition:transform .16s,border-color .16s,background .16s}
+.avatar-choice:hover{transform:translateY(-2px);background:#ffffff12}
+.avatar-choice.selected{border-color:var(--theme-accent);background:rgba(var(--theme-accent-rgb),.2);box-shadow:0 0 0 2px rgba(var(--theme-accent-rgb),.12)}
+.player .avatar{font-size:23px;display:grid;place-items:center}
+@media(max-width:500px){.avatar-choice{width:39px;height:39px}}

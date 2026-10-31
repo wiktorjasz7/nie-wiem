@@ -1,0 +1,168 @@
+
+/* New IMPOSTOR game and shared game selector — scoped, CZÓŁKO styles unchanged. */
+.imp-shell{--imp-violet:#af94f8;--imp-rose:#f18b9b;--imp-good:#a0e3c6}
+.imp-header{gap:14px}
+.imp-brand-mark{color:#d9b7ff;border-color:#bb8efb;font-size:20px}
+.imp-header-right{display:flex;align-items:center;gap:18px;margin-left:auto}
+.imp-header-label{font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.15em;color:#837b99}
+.imp-header-nav,.hub-nav-link{background:none;border:1px solid #ffffff1d;border-radius:9px;color:#c4bbd4;padding:9px 12px;font-size:11px;cursor:pointer}
+.imp-header-nav:hover,.hub-nav-link:hover{border-color:#a58aff99;background:#ffffff0a}
+.imp-main{width:100%}
+.imp-home{max-width:910px;margin:0 auto 50px}
+.imp-hero{text-align:center;padding:70px 0 27px}
+.imp-hero .eyebrow{font-size:10px}
+.imp-hero h1{font-size:clamp(40px,6.3vw,70px);letter-spacing:-.056em;margin:23px 0 18px}
+.imp-hero h1 em{font-style:normal;background:linear-gradient(100deg,#bba7ff,#f3a3af);background-clip:text;-webkit-background-clip:text;color:transparent}
+.imp-hero .intro{margin:0 auto 24px}
+.imp-how{display:flex;justify-content:center;flex-wrap:wrap;gap:26px;color:#79758c;font-family:"DM Mono",monospace;letter-spacing:.09em;font-size:9px}
+.imp-home-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.imp-form-panel{padding:25px 27px 27px}
+.imp-form-panel h2{margin:15px 0 7px;font-size:23px;letter-spacing:-.025em}
+.imp-form-panel>p{font-size:12px;color:#a7a2b5;line-height:1.7;margin:0 0 15px;min-height:43px}
+.imp-action-icon{background:rgba(171,139,255,.2)}
+.imp-form-panel label{margin:17px 0 7px}
+.imp-form-panel .imp-full{width:100%;margin-top:24px}
+.imp-join-panel{display:flex;flex-direction:column}
+.imp-join-panel .imp-full{margin-top:auto}
+.imp-join-panel input{margin-bottom:20px}
+.imp-avatar-trigger{width:100%;display:flex;align-items:center;gap:10px;background:#10101a;border:1px solid #ffffff1c;border-radius:10px;color:#e9e4f1;padding:8px 13px;text-align:left;cursor:pointer;font-size:13px}
+.imp-avatar-trigger>span:last-child{margin-left:auto;color:#bca0f5;font-size:18px}
+.imp-avatar-current{display:grid;place-items:center;width:33px;height:33px;background:#a18bf61b;border-radius:9px;font-size:20px}
+.imp-avatar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(39px,1fr));gap:4px;max-height:178px;overflow:auto;padding:8px;margin-top:8px;border:1px solid #ffffff18;background:#0f0f19;border-radius:10px}
+.imp-avatar-grid button{display:grid;place-items:center;height:38px;font-size:21px;border:1px solid transparent;border-radius:8px;background:#ffffff07;cursor:pointer}
+.imp-avatar-grid button:hover,.imp-avatar-grid button.active{border-color:#a88bff;background:#a88bff20}
+.imp-invite-tip{padding:11px 12px;margin:-8px 0 17px;background:#a58aff14;border:1px solid #a58aff33;color:#c9b8f0;font-size:11px;border-radius:9px}
+.imp-rule-note{display:flex;align-items:center;gap:10px;font-size:11px;color:#837e94;line-height:1.6;margin-top:28px;padding-top:21px;border-top:1px solid #ffffff14}
+.imp-rule-note>span{color:#b18bff;font-size:18px}
+.imp-room{max-width:930px;margin:45px auto 45px}
+.imp-room-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:22px}
+.imp-room-heading .eyebrow{justify-content:flex-start;color:#b59aff}
+.imp-room-heading h1{font-size:clamp(29px,5vw,45px);margin:9px 0 9px;letter-spacing:-.045em}
+.imp-room-heading p{margin:0;color:#9590a5;font-size:12px}
+.imp-code-card{padding:13px 16px;background:#ffffff08;border:1px solid #ffffff1b;border-radius:13px;min-width:210px;text-align:center}
+.imp-code-card>span{display:block;font-family:"DM Mono",monospace;letter-spacing:.1em;color:#9691a7;font-size:9px}
+.imp-code-card>strong{font-size:23px;font-family:"DM Mono",monospace;letter-spacing:.12em;display:block;margin:5px 0;color:#f6f3ff}
+.imp-code-card>div{display:flex;gap:8px;justify-content:center}
+.imp-code-card button{border:0;background:none;color:#b6a0ed;font-size:10px;cursor:pointer;padding:4px}
+.imp-code-card button:hover{text-decoration:underline}
+.imp-players-panel{padding:23px;margin-bottom:16px}
+.imp-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:17px}
+.imp-section-head .eyebrow{justify-content:flex-start}
+.imp-section-head h2{font-size:23px;margin:6px 0 0;letter-spacing:-.03em}
+.imp-section-head h2 span{color:#ac90ef;font-size:13px;margin-left:4px}
+.imp-players-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.imp-player{min-width:0;display:flex;align-items:center;gap:11px;padding:12px 13px;border:1px solid #ffffff13;background:#ffffff05;border-radius:12px;transition:.2s}
+.imp-player.is-me{border-color:#a58aff58;background:#a58aff0a}
+.imp-player.is-current{border-color:#b396ff;box-shadow:0 0 25px #a58aff26;background:linear-gradient(110deg,#a58aff23,#ffffff07)}
+.imp-player-avatar{display:grid;place-items:center;width:39px;height:39px;flex:none;background:#7963ac35;border-radius:11px;font-size:23px}
+.imp-player-main{display:flex;flex-direction:column;gap:4px;min-width:0}
+.imp-player-main strong{font-size:12px;overflow-wrap:anywhere}
+.imp-player-main strong small{color:#a999db;font-size:9px}
+.imp-player-main>span{font-family:"DM Mono",monospace;letter-spacing:.06em;color:#89849e;font-size:9px}
+.imp-player.is-current .imp-player-main>span{color:#cbb4ff}
+.imp-kick{margin-left:auto;border:1px solid #df869246;background:#fa727b11;border-radius:7px;color:#e6a5af;padding:7px 9px;font-size:9px;cursor:pointer;white-space:nowrap}
+.imp-kick:hover{background:#fa727b27}
+.imp-lobby-foot{display:flex;justify-content:space-between;align-items:center;gap:18px;padding-top:20px;margin-top:20px;border-top:1px solid #ffffff12}
+.imp-lobby-foot p{margin:0;color:#a7a2b5;font-size:11px;line-height:1.6}
+.imp-lobby-foot button{white-space:nowrap}
+.imp-role-card{overflow:hidden;border:1px solid #9c85d35c;background:linear-gradient(130deg,#252037,#181722);border-radius:17px;margin-bottom:16px;box-shadow:0 8px 35px #0003}
+.imp-role-card.is-impostor{border-color:#c96e7a80;background:linear-gradient(130deg,#342027,#1e171e)}
+.imp-role-hidden{padding:22px;display:flex;align-items:center;gap:19px}
+.imp-role-icon{flex:none;display:grid;place-items:center;width:48px;height:48px;border:1px solid #a58aff45;border-radius:13px;background:#a58aff18;color:#c9b4ff;font-size:29px}
+.imp-role-hidden div{flex:1;min-width:0}
+.imp-role-hidden div>span,.imp-role-revealed .eyebrow{display:block;font-family:"DM Mono",monospace;letter-spacing:.11em;font-size:9px;color:#b39bea;margin-bottom:7px}
+.imp-role-hidden strong{display:block;font-size:17px}
+.imp-role-hidden p{font-size:11px;line-height:1.55;color:#9e99b0;margin:5px 0 0}
+.imp-role-revealed{text-align:center;padding:29px 18px 22px}
+.imp-role-revealed .eyebrow{justify-content:center;margin-bottom:10px}
+.imp-role-revealed h2{font-size:clamp(20px,4vw,30px);letter-spacing:-.025em;margin:0 0 12px;color:#d7c4ff}
+.is-impostor .imp-role-revealed h2{color:#ffabb6}
+.imp-role-revealed p{font-size:12px;color:#afa6b9;line-height:1.6;max-width:500px;margin:12px auto 15px}
+.imp-secret-word{display:inline-block;padding:13px 22px;max-width:100%;overflow-wrap:anywhere;background:#b5a0ff19;border:1px solid #b5a0ff40;border-radius:11px;color:#f4eaff;font-size:clamp(23px,4vw,38px);font-weight:800;letter-spacing:-.04em}
+.imp-hide-role{background:none;border:0;padding:7px 12px;color:#aa96ce;font-size:11px;cursor:pointer;text-decoration:underline}
+.imp-guess-area{border-top:1px solid #ffffff18;text-align:center;padding:14px 20px 20px}
+.imp-guess-area>p{font-size:11px;color:#d0bac2;line-height:1.65;max-width:560px;margin:0 auto 12px}
+.imp-guess-area strong{color:#ffd0d7}
+.imp-guess-form{display:flex;flex-direction:column;gap:10px;max-width:480px;margin:auto}
+.imp-guess-form>div{display:flex;justify-content:center;gap:9px}
+.imp-guess-form button{min-width:125px}
+.imp-stage{padding:24px;margin-bottom:16px}
+.imp-stage>.eyebrow{justify-content:flex-start;margin-bottom:12px}
+.imp-stage h2{font-size:clamp(21px,4vw,27px);margin:8px 0 12px;letter-spacing:-.03em}
+.imp-stage p{color:#aaa4ba;font-size:12px;line-height:1.7;max-width:660px;margin:12px 0 20px}
+.imp-stage p strong{color:#e5d9ff}
+.imp-stage-progress{height:7px;border-radius:99px;background:#ffffff12;overflow:hidden}
+.imp-stage-progress>div{height:100%;border-radius:99px;background:linear-gradient(90deg,#8369d9,#c6aaff);transition:width .3s}
+.imp-stage button.primary{margin-top:5px}
+.imp-vote-count{font-size:11px;color:#b3acc4;padding:10px 12px;background:#ffffff07;border-radius:9px;display:inline-flex;gap:10px;margin-bottom:14px}
+.imp-vote-count strong{color:#e8dfff}
+.imp-choice-actions{display:flex;flex-wrap:wrap;gap:10px}
+.imp-choice-actions button{flex:1;min-width:220px}
+.imp-suspect-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:10px}
+.imp-suspect{display:flex;flex-direction:column;align-items:center;gap:7px;padding:17px 10px;border:1px solid #ffffff22;background:#ffffff07;border-radius:12px;color:#f0eafc;cursor:pointer;transition:transform .18s,border-color .18s,background .18s}
+.imp-suspect:hover{transform:translateY(-2px);border-color:#ea929e;background:#ea929e18}
+.imp-suspect>span{font-size:30px}
+.imp-suspect>strong{font-size:12px;overflow-wrap:anywhere}
+.imp-suspect>small{font-size:9px;color:#b8a5bb}
+.imp-results{text-align:center;padding:32px 24px;margin-bottom:18px}
+.imp-results .eyebrow{justify-content:center}
+.imp-trophy{display:block;font-size:43px;margin:16px auto 9px;color:#e99ba9}
+.imp-results h2{font-size:clamp(23px,5vw,35px);letter-spacing:-.035em;color:#c9ecdc;margin:10px 0}
+.imp-results.imp-winner h2{color:#f4a5b1}
+.imp-results>p{font-size:12px;color:#aaa4bc;line-height:1.65}
+.imp-reveal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:23px 0}
+.imp-reveal-grid>div{display:flex;flex-direction:column;gap:10px;border:1px solid #ffffff1b;background:#ffffff07;border-radius:12px;padding:17px 12px;min-width:0}
+.imp-reveal-grid span{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:.08em;color:#9f98ac}
+.imp-reveal-grid strong{font-size:18px;overflow-wrap:anywhere;color:#f3ecff}
+.imp-results button.primary{min-width:230px}
+.imp-results .waiting-box{margin:auto;max-width:420px}
+.imp-leave{display:block;margin-top:6px}
+
+/* Landing screen shared by both games. */
+.hub-main{width:100%;max-width:1000px;margin:0 auto}
+.hub-hero{text-align:center;padding:75px 0 35px}
+.hub-hero h1{font-size:clamp(40px,6.3vw,69px);line-height:1.08;letter-spacing:-.055em;max-width:770px;margin:22px auto 19px}
+.hub-hero h1 em{font-style:normal;color:#af95ff}
+.hub-hero>p{max-width:540px;margin:auto;color:#aaa5b8;font-size:13px;line-height:1.7}
+.hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;margin:20px 0 52px}
+.hub-game{position:relative;text-align:left;padding:25px 26px 27px;background:linear-gradient(145deg,#242034,#181720);border:1px solid #ffffff1d;border-radius:19px;color:#f8f5ff;cursor:pointer;overflow:hidden;min-height:280px;display:flex;flex-direction:column;align-items:flex-start;transition:transform .2s,border-color .2s,box-shadow .2s}
+.hub-game:hover{transform:translateY(-4px);border-color:#a58affaa;box-shadow:0 20px 45px #0005}
+.hub-game.imp-hub-game{background:linear-gradient(145deg,#30232f,#19151e)}
+.hub-game.imp-hub-game:hover{border-color:#e88ca1a6}
+.hub-game .hub-id{color:#a995d1;font-family:"DM Mono",monospace;letter-spacing:.12em;font-size:10px}
+.hub-game.imp-hub-game .hub-id{color:#eba1af}
+.hub-game .hub-art{font-size:43px;margin:25px 0 11px;line-height:1}
+.hub-game h2{font-size:32px;letter-spacing:-.04em;margin:0 0 9px}
+.hub-game p{color:#b0a8bc;font-size:12px;line-height:1.65;margin:0 0 22px;max-width:350px}
+.hub-game .hub-go{display:inline-flex;align-items:center;gap:10px;margin-top:auto;color:#d1bfff;font-size:12px;font-weight:800}
+.hub-game.imp-hub-game .hub-go{color:#ffb5c1}
+.hub-footer-note{text-align:center;color:#7c758c;font-size:11px;margin:-29px auto 45px}
+.hub-top-label{font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.1em;color:#90889f}
+
+@media(max-width:720px){
+  .imp-home-grid,.hub-grid{grid-template-columns:1fr}
+  .imp-hero{padding:43px 0 28px}
+  .hub-hero{padding:50px 0 24px}
+  .imp-room{margin:26px auto}
+  .imp-players-grid{grid-template-columns:1fr}
+  .imp-room-heading{align-items:stretch;flex-direction:column}
+  .imp-code-card{width:100%}
+  .imp-lobby-foot{flex-direction:column;align-items:stretch}
+  .imp-lobby-foot button{width:100%}
+  .imp-header-label{display:none}
+  .imp-role-hidden{align-items:flex-start;flex-wrap:wrap;gap:12px}
+  .imp-role-hidden button{width:100%}
+  .imp-choice-actions{flex-direction:column}
+  .imp-choice-actions button{width:100%;min-width:0}
+  .hub-game{min-height:240px}
+}
+@media(max-width:480px){
+  .imp-form-panel,.imp-players-panel,.imp-stage{padding:17px}
+  .imp-hero h1,.hub-hero h1{font-size:39px}
+  .imp-header .brand{font-size:12px;letter-spacing:.06em}
+  .imp-header-nav{padding:8px;font-size:9px}
+  .imp-reveal-grid{grid-template-columns:1fr}
+  .imp-results{padding:23px 15px}
+  .imp-suspect-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .imp-code-card{min-width:0}
+}

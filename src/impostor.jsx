@@ -228,20 +228,24 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
           <p className="intro">Wszyscy znają sekret. Prawie wszyscy. Podawajcie skojarzenia, wypatrujcie impostora i nie dajcie mu odgadnąć hasła.</p>
           <div className="imp-how"><span>01 / TAJNE ROLE</span><span>02 / SKOJARZENIA</span><span>03 / GŁOSOWANIE</span></div>
         </div>
+        <div className="panel imp-profile-bar">
+          <div className="imp-profile-bar-fields">
+            <div><label>TWÓJ NICK</label><input maxLength={18} placeholder="Wpisz swój nick" value={name} onChange={e=>setName(e.target.value)}/></div>
+            <div><label>TWÓJ AWATAR</label>
+              <button type="button" className="imp-avatar-trigger" onClick={()=>setAvatarOpen(v=>!v)} aria-expanded={avatarOpen}>
+                <span className="imp-avatar-current">{avatar}</span><span>{avatarOpen ? "Zwiń awatary" : "Wybierz awatar"}</span><span>⌄</span>
+              </button>
+            </div>
+          </div>
+          {avatarOpen && <div className="imp-avatar-grid">
+            {avatars.map(a=><button key={a} type="button" className={a===avatar?"active":""} aria-label={"Awatar "+a} aria-pressed={a===avatar} onClick={()=>{setAvatar(a);setAvatarOpen(false);}}>{a}</button>)}
+          </div>}
+        </div>
         <div className="imp-home-grid">
           <section className="panel imp-form-panel">
             <div className="action-icon imp-action-icon">✦</div>
             <h2>Stwórz pokój</h2>
             <p>Ty prowadzisz rozgrywkę. Potrzeba co najmniej 3 osób.</p>
-            <label>TWÓJ NICK</label>
-            <input maxLength={18} placeholder="Jak Cię nazywają?" value={name} onChange={e=>setName(e.target.value)} />
-            <label>TWÓJ AWATAR</label>
-            <button type="button" className="imp-avatar-trigger" onClick={()=>setAvatarOpen(v=>!v)} aria-expanded={avatarOpen}>
-              <span className="imp-avatar-current">{avatar}</span><span>{avatarOpen ? "Zwiń awatary" : "Wybierz awatar"}</span><span>⌄</span>
-            </button>
-            {avatarOpen && <div className="imp-avatar-grid">
-              {avatars.map(a=><button key={a} type="button" className={a===avatar?"active":""} aria-label={"Awatar "+a} aria-pressed={a===avatar} onClick={()=>{setAvatar(a);setAvatarOpen(false);}}>{a}</button>)}
-            </div>}
             <label>KATEGORIA HASEŁ</label>
             <select value={category} onChange={e=>setCategory(e.target.value)}>
               {categories.map(c=><option key={c} value={c}>{c}</option>)}
@@ -260,7 +264,6 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
             <div className="action-icon">↗</div>
             <h2>Dołącz do ekipy</h2>
             <p>Dostałeś link albo kod? Wejdź pod własnym nickiem. Rola zostanie wylosowana po starcie.</p>
-            <p className="imp-join-profile-note">Nick i awatar ustawiasz po lewej, w sekcji „Stwórz pokój”. Tutaj wystarczy kod zaproszenia.</p>
             <label>KOD POKOJU</label>
             <input maxLength={6} placeholder="np. A1B2C3" value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())}/>
             {getInvitation() && <div className="imp-invite-tip">Kod z zaproszenia został wpisany automatycznie.</div>}

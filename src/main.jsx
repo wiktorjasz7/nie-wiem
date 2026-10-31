@@ -35,7 +35,7 @@ function App() {
   const [difficulty, setDifficulty] = useState("normal");
   const [targetScore, setTargetScore] = useState(3);
   const [gameMode, setGameMode] = useState("individual");
-  const [modifiers, setModifiers] = useState({ double_points: false, chaos: false, random_order: false });
+  const [modifiers, setModifiers] = useState({ double_points: false, chaos: false, random_order: false, guess_voting: true });
   const [custom, setCustom] = useState("");
   const [room, setRoom] = useState("");
   const [token, setToken] = useState("");
@@ -130,7 +130,12 @@ function App() {
       if (!audioContextRef.current) audioContextRef.current = new AudioContextClass();
       const ctx = audioContextRef.current;
       if (ctx.state === "suspended") ctx.resume();
-      const notes = type === "win" ? [523, 659, 784, 1047, 1319] : type === "start" ? [392, 523, 659] : type === "point" ? [523, 659, 784] : type === "join" ? [440, 554] : [392];
+      const eventNotes = {
+        shuffle: [392, 440, 523, 659], hint: [740, 988], skip: [392, 311],
+        confirm: [659, 880, 1047], reject: [392, 330, 262], vote: [494, 587],
+        pass: [440, 392], chance: [523, 784]
+      };
+      const notes = eventNotes[type] || (type === "win" ? [523, 659, 784, 1047, 1319] : type === "start" ? [392, 523, 659] : type === "point" ? [523, 659, 784] : type === "join" ? [440, 554] : [392]);
       notes.forEach((frequency, index) => {
         const oscillator = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -158,10 +163,6 @@ function App() {
   }, [sfxVolume]);
 
   useEffect(() => {
-    if (celebrate) playSfx("point");
-  }, [celebrate]);
-
-  useEffect(() => {
     if (!celebrate) return;
     const timer = setTimeout(() => setCelebrate(false), 1750);
     return () => clearTimeout(timer);
@@ -182,6 +183,17 @@ function App() {
     }
     if (previous?.status === "finished" && state.status === "playing") setWinnerCelebration(false);
     if (previous) {
+      // Każdy nowy event ma rosnący numer. Odtwórz go raz, nie przy każdym odpytywaniu.
+      if (state.code === previous.code && Number(state.event_seq) > Number(previous.event_seq)) {
+        const kind = state.event_kind;
+        if (kind === "hint") playSfx("hint");
+        else if (kind === "skip") playSfx("skip");
+        else if (kind === "point") playSfx("confirm");
+        else if (kind === "rejected") playSfx("reject");
+        else if (kind === "vote") playSfx("vote");
+        else if (kind === "chance") playSfx("chance");
+        else if (kind === "start" && state.modifiers?.random_order) playSfx("shuffle");
+      }
       if (state.players.length > previous.players.length) playSfx("join");
       if (
         state.status === "playing" &&
@@ -470,6 +482,10 @@ const advance = async (correct, skipWord = false) => {
                   <label className={"modifier-option"+(modifiers.double_points?" selected":"")}><input type="checkbox" checked={modifiers.double_points} onChange={e=>setModifiers(v=>({...v,double_points:e.target.checked}))}/><span className="modifier-icon">✦</span><span><strong>Podwójne punkty</strong><small>Każde poprawne odgadnięcie daje 2 punkty.</small></span></label>
                   <label className={"modifier-option chaos-option"+(modifiers.chaos?" selected":"")}><input type="checkbox" checked={modifiers.chaos} onChange={e=>setModifiers(v=>({...v,chaos:e.target.checked}))}/><span className="modifier-icon">☄</span><span><strong>CHAOS</strong><small>Co 3 tury losuje się specjalne wydarzenie.</small></span></label>
                 </div>
+                <label className={"modifier-option voting-option"+(modifiers.guess_voting?" selected":"")}>
+                  <input type="checkbox" checked={!!modifiers.guess_voting} onChange={e=>setModifiers(v=>({...v,guess_voting:e.target.checked}))}/>
+                  <span className="modifier-icon">✓</span><span><strong>Głosowanie nad odpowiedzią</strong><small>Gdy włączone, pozostali zatwierdzają odgadnięcie. Gdy wyłączone, punkt wpada od razu.</small></span>
+                </label>
                 <label className={"modifier-option random-order-option"+(modifiers.random_order?" selected":"")}>
                   <input type="checkbox" checked={!!modifiers.random_order} onChange={e=>setModifiers(v=>({...v,random_order:e.target.checked}))}/>
                   <span className="modifier-icon">🎲</span><span><strong>Losowa kolejność graczy</strong><small>Nowa kolejność przy każdym rozpoczęciu gry.</small></span>
@@ -538,7 +554,7 @@ const advance = async (correct, skipWord = false) => {
               </div> : <p className="guess-vote-wait">{vote.my_vote != null ? "Twój głos został zapisany. Czekamy na pozostałych." : "Czekamy na decyzję głosujących…"}</p>}
             </div>}
             {myTurn ? (votePending ? <div className="waiting-box">Trwa głosowanie nad Twoją odpowiedzią. Poczekaj na decyzję innych.</div> :
-              <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>{state.game_mode === "teams" ? "Odgadłem! Sprawdźcie odpowiedź" : "Odgadłem hasło! Głosowanie"}</button><button className="secondary" onClick={()=>advance(false)} disabled={busy}>Przekaż kolejkę →</button><button className="secondary skip-word-button" onClick={()=>advance(false, true)} disabled={busy}>Pomiń hasło <span>−1 pkt</span></button><button className="secondary hint-button" onClick={requestHint} disabled={busy || !!state.hint_used}>{state.hint_used ? "💡 Podpowiedź wykorzystana" : "💡 Poproś o podpowiedź −1 pkt"}</button></div>) :
+              <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>{state.modifiers?.guess_voting === false ? (state.game_mode === "teams" ? "Odgadłem! Punkt dla drużyny" : "Odgadłem hasło! Punkt") : (state.game_mode === "teams" ? "Odgadłem! Sprawdźcie odpowiedź" : "Odgadłem hasło! Głosowanie")}</button><button className="secondary" onClick={()=>advance(false)} disabled={busy}>Przekaż kolejkę →</button><button className="secondary skip-word-button" onClick={()=>advance(false, true)} disabled={busy}>Pomiń hasło <span>−1 pkt</span></button><button className="secondary hint-button" onClick={requestHint} disabled={busy || !!state.hint_used}>{state.hint_used ? "💡 Podpowiedź wykorzystana" : "💡 Poproś o podpowiedź −1 pkt"}</button></div>) :
               <div className="waiting-box">Teraz pytanie zadaje: <strong>{state.current_player_name}</strong></div>}
           </div>}
           {state.status === "finished" && <div className="panel results-panel">

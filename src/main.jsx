@@ -170,7 +170,7 @@ function App() {
   };
   const start = async () => {
     const data = await run("start_game", { p_code: room, p_token: token });
-    if (data) setNotice("Gra rozpoczęta!");
+    if (data) setNotice(data.restarted ? "Nowa rozgrywka rozpoczęta! Powodzenia!" : "Gra rozpoczęta!");
   };
 const advance = async (correct) => {
   if (!supabase) {
@@ -303,7 +303,10 @@ const advance = async (correct) => {
             <div className="final-scores"><div className="eyebrow">KOŃCOWA TABELA WYNIKÓW</div>
               {leaderboard.map((p,i)=><div className="score-row" key={p.id}><span className="score-rank">{i+1}.</span><strong>{p.name}{p.is_me ? " (TY)" : ""}</strong><span>{p.score} pkt</span></div>)}
             </div>
-            <p className="results-note">Dobra robota, ekipo. Rewanż? Opuść pokój i stwórzcie nowy!</p>
+            <div className="replay-actions">
+              {isHost ? <button className="primary" onClick={start} disabled={busy}>Zagrajcie ponownie <span>↻</span></button> : <div className="waiting-box">Czekamy, aż gospodarz rozpocznie rewanż…</div>}
+              <p className="results-note">Wszyscy zostajecie w tym samym pokoju — kod i skład ekipy się nie zmieniają.</p>
+            </div>
           </div>}
           <button className="text-button" onClick={leave}>← Opuść pokój</button>
         </>}

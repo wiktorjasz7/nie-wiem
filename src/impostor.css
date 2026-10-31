@@ -206,3 +206,14 @@
 /* Jednowyrazowe skojarzenie w miejsce technicznych informacji. */
 .imp-hint-card .imp-association-word{display:block;color:#ffe0e6;font-size:clamp(25px,5vw,39px);line-height:1.15;letter-spacing:-.035em;font-weight:800;overflow-wrap:anywhere;margin:4px 0 3px}
 .imp-final-hint .imp-association-word{font-size:clamp(24px,5vw,36px)}
+
+
+/* Jeden profil gracza, wspólny dla tworzenia i dołączania do pokoju. */
+.imp-profile-bar{margin:0 0 20px;padding:19px 22px}
+.imp-profile-bar-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:end}
+.imp-profile-bar-fields>div{min-width:0}
+.imp-profile-bar-fields label{display:block;margin:0 0 9px}
+.imp-profile-bar-fields input{width:100%;box-sizing:border-box}
+.imp-profile-bar-fields .imp-avatar-trigger{width:100%;min-height:44px}
+.imp-profile-bar .imp-avatar-grid{margin-top:15px}
+@media(max-width:600px){.imp-profile-bar{padding:16px}.imp-profile-bar-fields{grid-template-columns:1fr;gap:15px}}

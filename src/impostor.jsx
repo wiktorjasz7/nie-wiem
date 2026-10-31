@@ -17,6 +17,39 @@ const initialAvatar = () => {
 };
 
 export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
+  const [theme, setTheme] = useState(() => { try { return localStorage.getItem("nie-wiem-theme") || "amethyst"; } catch { return "amethyst"; } });
+  const [musicEnabled, setMusicEnabled] = useState(false);
+  const [musicSaved, setMusicSaved] = useState(() => { try { return localStorage.getItem("nie-wiem-music") === "on"; } catch { return false; } });
+  const [musicVolume, setMusicVolume] = useState(() => { try { return Number(localStorage.getItem("nie-wiem-music-volume") ?? 0.25); } catch { return 0.25; } });
+  const audioRef = useRef(null);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem("nie-wiem-theme", theme); } catch {}
+  }, [theme]);
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = musicVolume;
+    try { localStorage.setItem("nie-wiem-music-volume", String(musicVolume)); } catch {}
+  }, [musicVolume]);
+  const toggleMusic = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (musicEnabled) {
+      audio.pause();
+      setMusicEnabled(false);
+      setMusicSaved(false);
+      try { localStorage.setItem("nie-wiem-music", "off"); } catch {}
+      return;
+    }
+    try {
+      audio.volume = musicVolume;
+      await audio.play();
+      setMusicEnabled(true);
+      setMusicSaved(true);
+      try { localStorage.setItem("nie-wiem-music", "on"); } catch {}
+    } catch {
+      setError("Nie udało się włączyć muzyki. Sprawdź ustawienia dźwięku przeglądarki.");
+    }
+  };
   const [screen, setScreen] = useState("home");
   const [restoring, setRestoring] = useState(() => !!readSession());
   const [name, setName] = useState("");
@@ -209,12 +242,39 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
   const myVoteDone = state?.status === "round_vote" ? state.my_round_vote != null : state?.status === "identify" ? state.my_suspect_id != null : false;
 
   return <div className="app-shell imp-shell">
+    <audio ref={audioRef} src="/audio/lobby.mp3" loop preload="auto" />
     <header className="topbar imp-header">
       <button className="brand" onClick={() => screen === "room" ? leave() : onBack()}>
         <span className="brand-mark imp-brand-mark">◈</span>
         <span>IMPOSTOR<span className="brand-dot">.</span></span>
       </button>
       <div className="imp-header-right">
+        <label className="theme-picker">KOLORY
+          <select className="theme-select" aria-label="Motyw kolorystyczny" value={theme} onChange={e=>setTheme(e.target.value)}>
+            <option value="amethyst">💜 Amethyst</option>
+            <option value="ocean">🌊 Ocean</option>
+            <option value="forest">🌲 Forest</option>
+            <option value="rose">🌹 Rose</option>
+            <option value="sunset">🔥 Sunset</option>
+            <option value="midnight">🖤 Midnight</option>
+            <option value="cherry">🍒 Cherry</option>
+            <option value="gold">✨ Gold</option>
+            <option value="mint">🍃 Mint</option>
+            <option value="ice">🧊 Ice</option>
+            <option value="neon">💚 Neon</option>
+            <option value="coral">🪸 Coral</option>
+            <option value="berry">🫐 Berry</option>
+            <option value="teal">🩵 Teal</option>
+            <option value="blue">💠 Electric Blue</option>
+            <option value="crimson">❤️ Crimson</option>
+          </select>
+        </label>
+        <div className="audio-controls">
+          <button className="audio-toggle" onClick={toggleMusic}>{musicEnabled ? "♫ Muzyka: ON" : musicSaved ? "♫ Wznów muzykę" : "♫ Włącz muzykę"}</button>
+          <label className="audio-slider">MUZYKA
+            <input aria-label="Głośność muzyki" type="range" min="0" max="1" step="0.01" value={musicVolume} onChange={e=>setMusicVolume(Number(e.target.value))}/>
+          </label>
+        </div>
         <HeaderClock />
         <span className="imp-header-label">KTOŚ TU BLEFUJE.</span>
         <button className="imp-header-nav" onClick={() => screen === "room" ? leave() : onBack()}>{screen === "room" ? "← Opuść" : "← Wszystkie gry"}</button>

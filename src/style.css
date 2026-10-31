@@ -125,3 +125,14 @@ body::after{
 .room-code button{white-space:nowrap}
 @media(max-width:650px){.room-code{gap:8px}.room-code strong{font-size:18px}.room-code button{font-size:8px}}
 @media(prefers-reduced-motion:reduce){body::before,body::after{animation:none}}
+
+
+/* Własna karta nie dostaje poświaty — aktywna kolejka świeci tylko innym graczom */
+.player.is-me,
+html[data-theme] .player.is-me,
+html[data-theme] .player.is-me.is-current{
+  border-color:#ffffff0c;
+  background:#ffffff06;
+  box-shadow:none;
+}
+.player.is-me.is-current:after{display:none}

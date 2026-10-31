@@ -136,3 +136,5 @@ html[data-theme] .player.is-me.is-current{
   box-shadow:none;
 }
 .player.is-me.is-current:after{display:none}
+
+.my-turn-tag{flex:none;margin-left:auto;padding:6px 9px;border:1px solid var(--theme-accent);border-radius:999px;background:rgba(var(--theme-accent-rgb),.16);color:var(--theme-accent-light);font-size:9px;font-weight:900;letter-spacing:.08em;white-space:nowrap}

@@ -359,7 +359,7 @@ begin
   select p.id into v_player_id from public.players p join public.rooms r on r.id=p.room_id
   where r.code=upper(trim(p_code)) and p.token=p_token;
   if v_player_id is null then raise exception 'Nie należysz do tego pokoju.'; end if;
-  update public.players set avatar=case when p_avatar in ('😎','🐼','🦊','🐱','🐻','🐨','🐯','🐙','👽','🤖','👻','🦄','🐧','🦁','🐲','🍄','⚡','🔥') then p_avatar else '😎' end
+  update public.players set avatar=case when p_avatar in ('😎','🐼','🦊','🐱','🐻','🐨','🐯','🐙','👽','🤖','👻','🦄','🐧','🦁','🐲','🍄','⚡','🔥','🐸','🐵','🐰','🐹','🐮','🐷','🐺','🐗','🦝','🦉','🦋','🐢','🐬','🦈','🦖','🦕','🐝','🐞','🦂','🦀','🦐','🐳','🦩','🦚','🦜','🦔','🐿️','🌵','🌻','🌈','🍀','🍉','🍓','🍕','🍩','🎃','👑','💀','👾','💎','🎸','🚀','🛸','⚽','🏀','🎮','🎧','🧸','🧙','🥷','🦸','🧛','🧟','👺','👹','🤡','🥶','🥳','😈','🤠','🤓','🥸','😺','🙈','💩','🫶','🧠') then p_avatar else '😎' end
   where id=v_player_id;
   return jsonb_build_object('ok',true);
 end $;

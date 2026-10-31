@@ -36,4 +36,22 @@ footer{border-top:1px solid #ffffff12;padding:22px 0;display:flex;justify-conten
 .confetti span:nth-child(4n){background:#e4b9ff;width:5px;height:15px}
 @keyframes confetti-fall{0%{top:-5%;opacity:0}12%{opacity:1}100%{top:105%;opacity:0;transform:translateX(35px) rotate(540deg)}}
 @keyframes celebration-pop{0%{opacity:0;transform:translateY(12px) scale(.78)}100%{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes celebration-fade{0%,78%{opacity:1}100%{opacity:0}{.player,.player.is-current:after,.celebration,.celebration-card,.confetti span{animation:none!important;transition:none!important}.celebration{display:none}}
+@keyframes celebration-fade {
+  0%, 78% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player,
+  .player.is-current:after,
+  .celebration,
+  .celebration-card,
+  .confetti span {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .celebration {
+    display: none;
+  }
+}

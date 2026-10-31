@@ -260,12 +260,7 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
             <div className="action-icon">↗</div>
             <h2>Dołącz do ekipy</h2>
             <p>Dostałeś link albo kod? Wejdź pod własnym nickiem. Rola zostanie wylosowana po starcie.</p>
-            <label>TWÓJ NICK</label>
-            <input maxLength={18} placeholder="Wpisz swój nick" value={name} onChange={e=>setName(e.target.value)} />
-            <label>TWÓJ AWATAR</label>
-            <select value={avatar} onChange={e=>setAvatar(e.target.value)} aria-label="Twój awatar przy dołączaniu">
-              {avatars.map(a=><option key={a} value={a}>{a}</option>)}
-            </select>
+            <p className="imp-join-profile-note">Nick i awatar ustawiasz po lewej, w sekcji „Stwórz pokój”. Tutaj wystarczy kod zaproszenia.</p>
             <label>KOD POKOJU</label>
             <input maxLength={6} placeholder="np. A1B2C3" value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())}/>
             {getInvitation() && <div className="imp-invite-tip">Kod z zaproszenia został wpisany automatycznie.</div>}

@@ -79,20 +79,20 @@ function App() {
       if (!audioContextRef.current) audioContextRef.current = new AudioContextClass();
       const ctx = audioContextRef.current;
       if (ctx.state === "suspended") ctx.resume();
-      const notes = type === "win" ? [523, 659, 784, 1047, 1319] : type === "point" ? [523, 659, 784] : type === "join" ? [440, 554] : [392];
+      const notes = type === "win" ? [523, 659, 784, 1047, 1319] : type === "start" ? [392, 523, 659] : type === "point" ? [523, 659, 784] : type === "join" ? [440, 554] : [392];
       notes.forEach((frequency, index) => {
         const oscillator = ctx.createOscillator();
         const gain = ctx.createGain();
-        const start = ctx.currentTime + index * (type === "win" ? 0.14 : 0.105);
+        const start = ctx.currentTime + index * (type === "win" ? 0.14 : type === "start" ? 0.09 : 0.105);
         oscillator.type = "sine";
         oscillator.frequency.setValueAtTime(frequency, start);
         gain.gain.setValueAtTime(0.0001, start);
         gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, sfxVolume * 0.11), start + 0.018);
-        gain.gain.exponentialRampToValueAtTime(0.0001, start + (type === "win" ? 0.48 : 0.19));
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + (type === "win" ? 0.48 : type === "start" ? 0.28 : 0.19));
         oscillator.connect(gain);
         gain.connect(ctx.destination);
         oscillator.start(start);
-        oscillator.stop(start + (type === "win" ? 0.5 : 0.2));
+        oscillator.stop(start + (type === "win" ? 0.5 : type === "start" ? 0.3 : 0.2));
       });
     } catch {}
   };
@@ -197,6 +197,7 @@ function App() {
     if (data) enter(data);
   };
   const start = async () => {
+    playSfx("start");
     const data = await run("start_game", { p_code: room, p_token: token });
     if (data) setNotice(data.restarted ? "Nowa rozgrywka rozpoczęta! Powodzenia!" : "Gra rozpoczęta!");
   };

@@ -75,13 +75,37 @@ function App() {
     const data = await run("start_game", { p_code: room, p_token: token });
     if (data) setNotice("Gra rozpoczęta!");
   };
-  const advance = async (correct) => {
-    const data = await run("finish_turn", { p_code: room, p_token: token, p_correct: correct });
-    if (data) {
-      setNotice(correct ? "Hasło odgadnięte! +1 punkt i dostajesz nowe hasło." : "Przekazano kolejkę.");
-      if (correct) setCelebrate(true);
-    }
-  };
+const advance = async (correct) => {
+  if (!supabase) {
+    setError("Brak połączenia z Supabase.");
+    return;
+  }
+
+  setBusy(true);
+  setError("");
+  setNotice("");
+
+  const { error } = await supabase.rpc("finish_turn", {
+    p_code: room,
+    p_token: token,
+    p_correct: correct
+  });
+
+  setBusy(false);
+
+  if (error) {
+    setError(error.message);
+    return;
+  }
+
+  setNotice(
+    correct
+      ? "Hasło odgadnięte! +1 punkt i dostajesz nowe hasło."
+      : "Przekazano kolejkę."
+  );
+
+  if (correct) setCelebrate(true);
+};
   const leave = () => {
     setScreen("home"); setRoom(""); setToken(""); setState(null); setError(""); setNotice("");
   };
@@ -150,7 +174,7 @@ function App() {
       </section>}
       {error && screen === "home" && <div className="alert home-alert">{error}</div>}
     </main>
-    <footer><span>NIE WIEM<span className="brand-dot">.</span> — WERSJA TESTOWA</span><span>GRAJ FAIR. ŚMIEJ SIĘ GŁOŚNO.</span></footer>
+    <footer><span>Czółko<span className="brand-dot">.</span> — WERSJA TESTOWA</span><span>GRAJ FAIR. ŚMIEJ SIĘ GŁOŚNO.</span></footer>
   </div>;
 }
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./impostor.css";
+import HeaderClock from "./HeaderClock.jsx";
 
 const SESSION_KEY = "impostor-room-session-v1";
 const getInvitation = () => new URLSearchParams(window.location.search).get("impostor")?.toUpperCase() || "";
@@ -214,6 +215,7 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
         <span>IMPOSTOR<span className="brand-dot">.</span></span>
       </button>
       <div className="imp-header-right">
+        <HeaderClock />
         <span className="imp-header-label">KTOŚ TU BLEFUJE.</span>
         <button className="imp-header-nav" onClick={() => screen === "room" ? leave() : onBack()}>{screen === "room" ? "← Opuść" : "← Wszystkie gry"}</button>
       </div>

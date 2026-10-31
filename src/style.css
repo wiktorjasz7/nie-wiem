@@ -416,12 +416,11 @@ html[data-theme] .players-grid .player.turn-active::after,
 
 /* Wydarzenia rozgrywki oraz nowa opcja losowego startu */
 .random-order-option{grid-column:1/-1}
-.game-event-notice{display:flex;flex-direction:column;gap:7px;margin:0 0 16px;padding:14px 18px;border:1px solid rgba(var(--theme-accent-rgb),.3);border-radius:13px;background:linear-gradient(120deg,rgba(var(--theme-accent-rgb),.13),rgba(var(--theme-accent-rgb),.035));box-shadow:0 8px 26px #0002}
-.game-event-notice .game-event-label{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:.12em;color:var(--theme-accent-light)}
-.game-event-notice strong{font-size:12px;line-height:1.6;color:#f3f0ff;font-weight:700}
-.game-event-notice.event-hint{border-color:rgba(244,195,112,.42);background:linear-gradient(110deg,rgba(244,195,112,.13),rgba(244,195,112,.035))}
-.game-event-notice.event-hint .game-event-label{color:#f4d49a}
 .turn-actions{flex-wrap:wrap}
 .hint-button{border-color:rgba(244,195,112,.32);color:#f4d49a}
 .hint-button:disabled{opacity:.46;cursor:not-allowed}
-@media(max-width:520px){.game-event-notice{padding:12px 13px}.random-order-option{grid-column:auto}}
+@media(max-width:520px){.random-order-option{grid-column:auto}}
+
+/* Dyskretna prośba o wskazówkę zostaje częścią mechaniki podpowiedzi,
+   bez wspólnego paska komunikatów o wydarzeniach. */
+.hint-request-inline{margin:12px 0;padding:10px 12px;border-left:3px solid rgba(244,195,112,.65);background:rgba(244,195,112,.06);border-radius:7px;font-size:11px;line-height:1.55;color:#e1d5bd}

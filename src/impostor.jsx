@@ -24,6 +24,7 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
   const [joinCode, setJoinCode] = useState(getInvitation);
   const [category, setCategory] = useState("Mieszane");
   const [difficulty, setDifficulty] = useState("normal");
+  const [hintsEnabled, setHintsEnabled] = useState(false);
   const [room, setRoom] = useState("");
   const [token, setToken] = useState("");
   const [state, setState] = useState(null);
@@ -132,7 +133,7 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
 
   const createRoom = async () => {
     if (!name.trim()) { setError("Wpisz nick."); return; }
-    const data = await rpc("imp_create_room", { p_name: name.trim(), p_category: category, p_difficulty: difficulty, p_avatar: avatar }, false);
+    const data = await rpc("imp_create_room", { p_name: name.trim(), p_category: category, p_difficulty: difficulty, p_avatar: avatar, p_hints: hintsEnabled }, false);
     if (data) await enter(data);
   };
 
@@ -193,6 +194,8 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
     }
   };
 
+  const changeHints = (enabled) => rpc("imp_set_hints", { p_code: room, p_token: token, p_enabled: enabled });
+
   const kick = async (person) => {
     if (!window.confirm("Usunąć gracza " + person.name + " z poczekalni?")) return;
     await rpc("imp_kick", { p_code: room, p_token: token, p_player_id: person.id });
@@ -247,6 +250,10 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
             <select value={difficulty} onChange={e=>setDifficulty(e.target.value)}>
               <option value="easy">Łatwy</option><option value="normal">Normalny</option><option value="hard">Trudny</option>
             </select>
+            <label className="imp-hints-setting">
+              <input type="checkbox" checked={hintsEnabled} onChange={e=>setHintsEnabled(e.target.checked)} />
+              <span><strong>Podpowiedzi dla impostora</strong><small>Impostor zobaczy kategorię, pierwszą literę i liczbę wyrazów hasła.</small></span>
+            </label>
             <button className="primary imp-full" onClick={createRoom} disabled={busy}>{busy?"Tworzenie…":"Utwórz pokój →"}</button>
           </section>
           <section className="panel imp-form-panel imp-join-panel">
@@ -294,6 +301,16 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
                 {state.is_host && state.status==="waiting" && !p.is_me && <button className="imp-kick" disabled={busy} onClick={()=>kick(p)}>Wyrzuć</button>}
               </div>)}
             </div>
+            {state.status==="waiting" && <div className="imp-lobby-hints">
+              <div><strong>✦ Podpowiedzi dla impostora</strong>
+                <small>{state.hints_enabled ? "Włączone · kategoria, pierwsza litera i liczba wyrazów" : "Wyłączone · impostor nie otrzyma wskazówek"}</small>
+              </div>
+              {state.is_host && <label className="imp-hints-switch">
+                <input type="checkbox" checked={!!state.hints_enabled} disabled={busy}
+                  onChange={e=>changeHints(e.target.checked)} aria-label="Podpowiedzi dla impostora"/>
+                <span>{state.hints_enabled ? "WŁ." : "WYŁ."}</span>
+              </label>}
+            </div>}
             {state.status==="waiting" && <div className="imp-lobby-foot">
               <p>{players.length<3?"Potrzeba jeszcze "+(3-players.length)+" graczy.":"Wszyscy gotowi? Losujemy role i zaczynamy!"}</p>
               {state.is_host ? <button className="primary" disabled={busy || players.length<3} onClick={()=>rpc("imp_start",{p_code:room,p_token:token})}>Losuj role i zacznij →</button> : <span className="waiting">Czekamy na gospodarza…</span>}
@@ -308,7 +325,14 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
             </div> : <>
               <div className="imp-role-revealed"><div className="eyebrow">TWOJA TAJNA ROLA</div>
                 <h2>{state.role==="impostor"?"JESTEŚ IMPOSTOREM":"ZNASZ HASŁO"}</h2>
-                {state.role==="impostor"?<p>Nie znasz hasła. Słuchaj skojarzeń i blefuj.</p>:<><div className="imp-secret-word">{state.secret_word}</div><p>Podaj skojarzenie, ale nie zdradzaj hasła wprost.</p></>}
+                {state.role==="impostor"?<><p>Nie znasz hasła. Słuchaj skojarzeń i blefuj.</p>
+                  {state.impostor_hint && <div className="imp-hint-card">
+                    <span>✦ TWOJE PODPOWIEDZI</span>
+                    <div><span>Kategoria: <strong>{state.impostor_hint.category}</strong></span>
+                      <span>Pierwsza litera: <strong>{state.impostor_hint.first_letter}</strong></span>
+                      <span>Wyrazów: <strong>{state.impostor_hint.word_count}</strong></span></div>
+                  </div>}
+                </>:<><div className="imp-secret-word">{state.secret_word}</div><p>Podaj skojarzenie, ale nie zdradzaj hasła wprost.</p></>}
                 <button className="imp-hide-role" onClick={()=>{setReveal(false);setGuessOpen(false);}}>Ukryj kartę ↑</button>
               </div>
               {state.role==="impostor" && <div className="imp-guess-area">
@@ -363,6 +387,12 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
             <p>{state.role==="impostor"
               ? "Gracze wskazali Cię poprawnie, ale możesz jeszcze wygrać. Odgadnij tajne hasło lub zrezygnuj z próby. Drobne literówki i brak polskich znaków są akceptowane."
               : "Wskazaliście "+(state.impostor_name||"impostora")+". Teraz ma jeszcze jedną szansę odgadnąć hasło. Jeśli się pomyli lub zrezygnuje, wygrywacie."}</p>
+            {state.role==="impostor" && state.impostor_hint && <div className="imp-hint-card imp-final-hint">
+              <span>✦ TWOJE PODPOWIEDZI</span>
+              <div><span>Kategoria: <strong>{state.impostor_hint.category}</strong></span>
+                <span>Pierwsza litera: <strong>{state.impostor_hint.first_letter}</strong></span>
+                <span>Wyrazów: <strong>{state.impostor_hint.word_count}</strong></span></div>
+            </div>}
             {state.role==="impostor" ?
               <form onSubmit={makeGuess} className="imp-guess-form imp-final-guess-form">
                 <input maxLength={80} autoComplete="off" value={guess} onChange={e=>setGuess(e.target.value)}

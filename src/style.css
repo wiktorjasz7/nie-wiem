@@ -138,3 +138,28 @@ html[data-theme] .player.is-me.is-current{
 .player.is-me.is-current:after{display:none}
 
 .my-turn-tag{flex:none;margin-left:auto;padding:6px 9px;border:1px solid var(--theme-accent);border-radius:999px;background:rgba(var(--theme-accent-rgb),.16);color:var(--theme-accent-light);font-size:9px;font-weight:900;letter-spacing:.08em;white-space:nowrap}
+
+/* Ekran końcowy i podium */
+.results-panel{padding:30px 24px;margin:18px 0 16px;overflow:hidden}
+.results-heading{text-align:center}
+.results-heading .eyebrow{justify-content:center}
+.results-heading h2{font-size:clamp(22px,4vw,34px);letter-spacing:-.04em;margin:12px 0 7px}
+.results-heading p{color:#aaa6b9;font-size:13px;margin:0}
+.results-heading p strong{color:var(--theme-accent-light)}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:12px;max-width:600px;margin:32px auto 30px}
+.podium-place{display:flex;flex:1;min-width:0;flex-direction:column;align-items:center;text-align:center;gap:7px}
+.podium-medal{font-size:30px;line-height:1.2}
+.podium-place>strong{font-size:13px;max-width:100%;overflow-wrap:anywhere}
+.podium-place>span{font-size:10px;color:#aaa6b9}
+.podium-block{width:100%;max-width:150px;display:grid;place-items:center;border:1px solid rgba(var(--theme-accent-rgb),.28);border-bottom:0;border-radius:12px 12px 0 0;background:linear-gradient(180deg,rgba(var(--theme-accent-rgb),.2),rgba(var(--theme-accent-rgb),.04));color:var(--theme-accent-light);font-size:24px}
+.place-1 .podium-block{height:112px;background:linear-gradient(180deg,rgba(var(--theme-accent-rgb),.32),rgba(var(--theme-accent-rgb),.08))}
+.place-2 .podium-block{height:82px}
+.place-3 .podium-block{height:62px}
+.final-scores{max-width:560px;margin:0 auto;padding-top:20px;border-top:1px solid #ffffff14}
+.final-scores>.eyebrow{justify-content:flex-start;margin-bottom:12px}
+.score-row{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;background:#ffffff06;margin-top:6px;font-size:12px}
+.score-rank{width:22px;color:var(--theme-accent-light);font-family:"DM Mono",monospace}
+.score-row strong{flex:1}
+.score-row>span:last-child{color:#c5b4ff;font-weight:800}
+.results-note{text-align:center;color:#777488;font-size:10px;margin:20px 0 0}
+@media(max-width:500px){.results-panel{padding:22px 14px}.podium{gap:6px}.podium-medal{font-size:25px}.podium-place>strong{font-size:11px}.podium-block{border-radius:9px 9px 0 0}}

@@ -7,8 +7,9 @@ create table if not exists public.rooms (
   host_token uuid not null,
   category text not null default 'Mieszane',
   custom_words text[] not null default '{}',
-  status text not null default 'waiting' check (status in ('waiting','playing')),
+  status text not null default 'waiting' check (status in ('waiting','playing','finished')),
   current_turn integer not null default 1,
+  winner_name text,
   created_at timestamptz not null default now()
 );
 
@@ -21,6 +22,7 @@ create table if not exists public.players (
   score integer not null default 0,
   seat integer not null,
   joined_at timestamptz not null default now(),
+  is_active boolean not null default true,
   unique(room_id, seat)
 );
 
@@ -94,39 +96,90 @@ begin
   if coalesce(array_length(v_words,1),0) < v_count then raise exception 'Za mało różnych haseł. Dodaj własne słowa lub wybierz inną kategorię.'; end if;
   with ordered as (select id,row_number() over(order by seat) rn from players where room_id=v_room.id)
   update players p set word=v_words[o.rn],score=0 from ordered o where p.id=o.id;
-  update rooms set status='playing',current_turn=1 where id=v_room.id;
+  update rooms set status='playing',current_turn=1,winner_name=null where id=v_room.id;
   return jsonb_build_object('ok',true);
 end $$;
 
 create or replace function public.get_game_state(p_code text,p_token uuid)
 returns jsonb language plpgsql security definer set search_path=public as $$
-declare v_room rooms%rowtype; v_me players%rowtype; v_current players%rowtype; v_players jsonb;
+declare
+  v_room rooms%rowtype;
+  v_me players%rowtype;
+  v_current players%rowtype;
+  v_players jsonb;
 begin
   select * into v_room from rooms where code=upper(trim(p_code));
   if not found then raise exception 'Nie znaleziono pokoju.'; end if;
   select * into v_me from players where room_id=v_room.id and token=p_token;
   if not found then raise exception 'Nie należysz do tego pokoju.'; end if;
-  select * into v_current from players where room_id=v_room.id and seat=v_room.current_turn;
-  select jsonb_agg(jsonb_build_object('id',p.id,'name',p.name,'score',p.score,'seat',p.seat,'is_me',p.token=p_token,'word',case when p.token=p_token then null else p.word end) order by p.seat)
-    into v_players from players p where p.room_id=v_room.id;
-  return jsonb_build_object('code',v_room.code,'status',v_room.status,'category',v_room.category,
+  select * into v_current from players where room_id=v_room.id and seat=v_room.current_turn and is_active;
+  select jsonb_agg(jsonb_build_object(
+    'id',p.id,'name',p.name,'score',p.score,'seat',p.seat,
+    'is_me',p.token=p_token,'is_active',p.is_active,
+    'word',case when p.token=p_token then null else p.word end
+  ) order by p.seat) into v_players
+  from players p where p.room_id=v_room.id;
+  return jsonb_build_object(
+    'code',v_room.code,'status',v_room.status,'category',v_room.category,
     'is_host',v_room.host_token=p_token,'players',coalesce(v_players,'[]'::jsonb),
-    'current_player_name',v_current.name,'current_player_is_me',v_current.token=p_token);
+    'current_player_name',v_current.name,
+    'current_player_is_me',coalesce(v_current.token=p_token,false),
+    'last_player_name',v_room.winner_name,'winner_name',v_room.winner_name
+  );
 end $$;
 
 create or replace function public.finish_turn(p_code text,p_token uuid,p_correct boolean default false)
 returns jsonb language plpgsql security definer set search_path=public as $$
-declare v_room rooms%rowtype; v_current players%rowtype; v_next integer; v_total integer;
+declare
+  v_room rooms%rowtype;
+  v_current players%rowtype;
+  v_next players%rowtype;
+  v_new_word text;
+  v_new_score integer;
 begin
   select * into v_room from rooms where code=upper(trim(p_code)) for update;
-  if not found or v_room.status<>'playing' then raise exception 'Gra nie jest aktywna.'; end if;
-  select * into v_current from players where room_id=v_room.id and seat=v_room.current_turn;
-  if v_current.token <> p_token then raise exception 'To nie Twoja tura.'; end if;
-  if p_correct then update players set score=score+1 where id=v_current.id; end if;
-  select count(*) into v_total from players where room_id=v_room.id;
-  v_next := case when v_room.current_turn >= v_total then 1 else v_room.current_turn+1 end;
-  update rooms set current_turn=v_next where id=v_room.id;
-  return jsonb_build_object('ok',true);
+  if not found or v_room.status <> 'playing' then raise exception 'Gra nie jest aktywna.'; end if;
+  select * into v_current from players
+  where room_id=v_room.id and seat=v_room.current_turn and is_active for update;
+  if not found or v_current.token <> p_token then raise exception 'To nie Twoja kolej.'; end if;
+
+  if p_correct then
+    v_new_score := v_current.score + 1;
+    update players set score=v_new_score where id=v_current.id;
+    if v_new_score >= 3 then
+      update rooms set status='finished',winner_name=v_current.name where id=v_room.id;
+      return jsonb_build_object('ok',true,'finished',true,'winner_name',v_current.name);
+    end if;
+
+    select q.word into v_new_word from (
+      select distinct s.word from (
+        select word from words where category=v_room.category or v_room.category='Mieszane'
+        union all select unnest(v_room.custom_words)
+      ) s
+    ) q
+    where q.word <> v_current.word and not exists (
+      select 1 from players p where p.room_id=v_room.id and p.id <> v_current.id and p.word=q.word
+    ) order by random() limit 1;
+
+    if v_new_word is null then
+      select q.word into v_new_word from (
+        select distinct s.word from (
+          select word from words where category=v_room.category or v_room.category='Mieszane'
+          union all select unnest(v_room.custom_words)
+        ) s
+      ) q where q.word <> v_current.word order by random() limit 1;
+    end if;
+    if v_new_word is null then raise exception 'Brak kolejnego hasła. Dodaj więcej haseł do kategorii.'; end if;
+    update players set word=v_new_word,is_active=true where id=v_current.id;
+  end if;
+
+  select * into v_next from players
+  where room_id=v_room.id and is_active and seat > v_current.seat order by seat limit 1;
+  if v_next.id is null then
+    select * into v_next from players where room_id=v_room.id and is_active order by seat limit 1;
+  end if;
+  update rooms set current_turn=v_next.seat where id=v_room.id;
+  return jsonb_build_object('ok',true,'finished',false,'new_word_assigned',p_correct);
 end $$;
 
 grant execute on function public.create_room(text,text,text[]) to anon, authenticated;

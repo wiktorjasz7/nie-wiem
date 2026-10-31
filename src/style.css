@@ -401,12 +401,14 @@ html[data-theme] .players-grid .player.turn-active::after,
 @media(max-width:540px){.category-multi-picker{gap:6px}.category-multi-choice{font-size:9px;padding:8px}.guess-vote-actions{flex-direction:column}.guess-vote-actions button{width:100%}}
 
 
-/* Zwijana lista wielu kategorii — oszczędza miejsce w formularzu. */
-.category-dropdown{margin-top:9px;border:1px solid #ffffff25;border-radius:11px;background:#ffffff07;overflow:hidden}
-.category-dropdown-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:43px;padding:12px 13px;color:#f5f2ff;font-size:12px;font-weight:700;cursor:pointer;list-style:none;user-select:none}
+/* Kategorie mają identyczny wygląd jak pozostałe pola select. */
+.category-dropdown{width:100%;margin:0;background:#10101a;border:1px solid #ffffff1c;border-radius:10px;overflow:hidden}
+.category-dropdown:focus-within{border-color:#9a7af1}
+.category-dropdown-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:45px;padding:13px 14px;color:#f4f1fb;font-size:13px;font-weight:400;cursor:pointer;list-style:none;user-select:none}
 .category-dropdown-summary::-webkit-details-marker{display:none}
-.category-dropdown-summary:focus-visible{outline:2px solid var(--theme-accent);outline-offset:-2px}
-.category-dropdown-arrow{color:var(--theme-accent-light);font-size:19px;transition:transform .2s}
+.category-dropdown-summary:focus-visible{outline:2px solid #9a7af1;outline-offset:-2px}
+.category-dropdown-arrow{flex:none;display:grid;place-items:center;width:13px;height:13px;color:#bcb8cc;font-size:13px;line-height:1;transition:transform .2s}
 .category-dropdown[open] .category-dropdown-arrow{transform:rotate(180deg)}
 .category-dropdown .category-multi-picker{display:flex;max-height:210px;overflow-y:auto;flex-wrap:wrap;align-content:flex-start;gap:7px;margin:0;padding:12px;border-top:1px solid #ffffff17}
+.action-card .category-dropdown .category-multi-choice{width:auto;margin:0;padding:8px 10px;flex:none}
 .category-summary{margin-top:8px;overflow-wrap:anywhere}

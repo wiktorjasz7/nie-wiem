@@ -166,3 +166,16 @@
   .imp-suspect-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .imp-code-card{min-width:0}
 }
+
+
+/* Ostatnia szansa zdemaskowanego impostora; stylistyka dopasowana do gry. */
+.imp-final-guess{border-color:#d6809870;background:linear-gradient(135deg,#281c2b,#171621);text-align:center;padding:30px 24px}
+.imp-final-guess>.eyebrow{justify-content:center;color:#f2aab9}
+.imp-final-guess-icon{display:grid;place-items:center;margin:4px auto 12px;width:55px;height:55px;border:1px solid #f2aab969;border-radius:17px;background:#f2aab918;color:#f2aab9;font-size:33px}
+.imp-final-guess h2{color:#f3d8e5}
+.imp-final-guess p{max-width:630px;margin:12px auto 22px}
+.imp-final-guess .waiting-box{max-width:560px;margin:0 auto}
+.imp-final-guess-form{max-width:500px}
+.imp-final-guess-form>div{flex-wrap:wrap}
+.imp-final-guess-form button{flex:1;min-width:150px}
+@media(max-width:480px){.imp-final-guess{padding:22px 15px}.imp-final-guess-form>div{flex-direction:column}.imp-final-guess-form button{width:100%}}

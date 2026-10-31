@@ -70,7 +70,7 @@ function App() {
   };
   const advance = async (correct) => {
     const data = await run("finish_turn", { p_code: room, p_token: token, p_correct: correct });
-    if (data) setNotice(correct ? "Punkt przyznany!" : "Tura pominięta.");
+    if (data) setNotice(correct ? "Hasło odgadnięte! Zdobywasz punkt." : "Przekazano kolejkę.");
   };
   const leave = () => {
     setScreen("home"); setRoom(""); setToken(""); setState(null); setError(""); setNotice("");
@@ -106,30 +106,31 @@ function App() {
             </div>
           </div>
         </div>
-        <div className="how"><span>01 / UTWÓRZ POKÓJ</span><span>02 / ZAPROŚ ZNAJOMYCH</span><span>03 / ODGADNIJ HASŁO</span></div>
+        <div className="how"><span>01 / UTWÓRZ POKÓJ</span><span>02 / ZAPROŚ ZNAJOMYCH</span><span>03 / ZADAWAJ PYTANIA</span></div>
       </section>}
 
       {screen === "room" && <section className="room-wrap">
-        <div className="room-heading"><div><div className="eyebrow">POKÓJ GRY</div><h1>{state?.status === "playing" ? "Czas zgadywać." : "Ekipa się zbiera."}</h1></div>
+        <div className="room-heading"><div><div className="eyebrow">POKÓJ GRY</div><h1>{state?.status === "finished" ? "Koniec gry." : state?.status === "playing" ? "Czas zgadywać." : "Ekipa się zbiera."}</h1></div>
           <div className="room-code"><span>KOD DOŁĄCZENIA</span><strong>{room}</strong><button onClick={()=>navigator.clipboard?.writeText(room)}>KOPIUJ</button></div>
         </div>
         {error && <div className="alert">{error}</div>}
         {notice && <div className="notice">{notice}</div>}
         {!state ? <div className="panel loading">Ładowanie pokoju...</div> : <>
           <div className="panel players-panel">
-            <div className="section-head"><div><span className="eyebrow">UCZESTNICY</span><h2>Gracze <span className="count">{state.players.length}</span></h2></div><span className="status">{state.status === "playing" ? "GRA W TOKU" : "OCZEKIWANIE"}</span></div>
+            <div className="section-head"><div><span className="eyebrow">UCZESTNICY</span><h2>Gracze <span className="count">{state.players.length}</span></h2></div><span className="status">{state.status === "finished" ? "KONIEC GRY" : state.status === "playing" ? "GRA W TOKU" : "OCZEKIWANIE"}</span></div>
             <div className="players-grid">{state.players.map((p,i)=><div className={"player "+(p.is_me?"is-me":"")} key={p.id}>
-              <div className="avatar">{(p.name||"?").slice(0,1).toUpperCase()}</div><div className="player-info"><strong>{p.name} {p.is_me && <small>(TY)</small>}</strong><span>{p.score} pkt</span></div>
-              {state.status === "playing" && <div className="word">{p.is_me ? <><span className="question">?</span><small>TWOJE HASŁO</small></> : <><strong>{p.word}</strong><small>HASŁO GRACZA</small></>}</div>}
+              <div className="avatar">{(p.name||"?").slice(0,1).toUpperCase()}</div><div className="player-info"><strong>{p.name} {p.is_me && <small>(TY)</small>}</strong><span>{p.score} pkt · {p.is_active ? "w grze" : "odgadł"}</span></div>
+              {state.status !== "waiting" && p.is_active && <div className="word">{p.is_me ? <><span className="question">?</span><small>TWOJE HASŁO</small></> : <><strong>{p.word}</strong><small>HASŁO GRACZA</small></>}</div>}
             </div>)}</div>
             {state.status === "waiting" && <div className="lobby-footer"><p>{state.players.length < 3 ? "Najlepiej gra się w 3–8 osób. Możecie zacząć już od 2." : "Ekipa gotowa. Niech rozpocznie się zgadywanie."}</p>{isHost ? <button className="primary" disabled={busy || state.players.length < 2} onClick={start}>Rozpocznij grę <span>→</span></button> : <span className="waiting">Czekamy na gospodarza…</span>}</div>}
           </div>
           {state.status === "playing" && <div className="panel turn-panel">
-            <div className="eyebrow">AKTUALNA TURA</div>
-            <h2>{state.current_player_name || "Gracz"} {myTurn ? "— zgadujesz!" : "zgaduje"}</h2>
-            <p>{myTurn ? "Zadawaj pytania na głos. Pozostali gracze widzą Twoje hasło i odpowiadają TAK lub NIE." : "Odpowiadaj na pytania gracza, którego kolej teraz trwa."}</p>
-            {myTurn ? <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>Odgadłem! +1 pkt</button><button className="secondary" onClick={()=>advance(false)} disabled={busy}>Pomiń hasło</button></div> : <div className="waiting-box">Teraz zgaduje: <strong>{state.current_player_name}</strong></div>}
+            <div className="eyebrow">AKTUALNA KOLEJKA</div>
+            <h2>{state.current_player_name || "Gracz"} {myTurn ? "— Twoja kolej!" : "zadaje pytanie"}</h2>
+            <p>{myTurn ? "Zadawaj pytania na głos. Pozostali gracze widzą Twoje hasło i odpowiadają TAK lub NIE. Możesz przekazać kolejkę albo spróbować odgadnąć hasło." : "Odpowiadaj TAK lub NIE na pytania aktualnego gracza. Twoja kolej nadejdzie później."}</p>
+            {myTurn ? <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>Odgadłem hasło! +1 pkt</button><button className="secondary" onClick={()=>advance(false)} disabled={busy}>Przekaż kolejkę →</button></div> : <div className="waiting-box">Teraz pytanie zadaje: <strong>{state.current_player_name}</strong></div>}
           </div>}
+          {state.status === "finished" && <div className="panel turn-panel"><div className="eyebrow">GRA ZAKOŃCZONA</div><h2>{state.last_player_name ? `${state.last_player_name} nie odgadł hasła` : "Wszyscy odgadli hasła!"}</h2><p>Gratulacje dla zwycięzców! Wyniki są widoczne na liście graczy.</p></div>}
           <button className="text-button" onClick={leave}>← Opuść pokój</button>
         </>}
       </section>}

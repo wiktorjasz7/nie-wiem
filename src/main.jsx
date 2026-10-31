@@ -8,9 +8,22 @@ const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = url && key && !url.includes("TWOJ-PROJEKT") ? createClient(url, key) : null;
 const AVATARS = ["😎","🐼","🦊","🐱","🐻","🐨","🐯","🐙","👽","🤖","👻","🦄","🐧","🦁","🐲","🍄","⚡","🔥","🐸","🐵","🐰","🐹","🐮","🐷","🐺","🐗","🦝","🦉","🦋","🐢","🐬","🦈","🦖","🦕","🐝","🐞","🦂","🦀","🦐","🐳","🦩","🦚","🦜","🦔","🐿️","🌵","🌻","🌈","🍀","🍉","🍓","🍕","🍩","🎃","👑","💀","👾","💎","🎸","🚀","🛸","⚽","🏀","🎮","🎧","🧸","🧙","🥷","🦸","🧛","🧟","👺","👹","🤡","🥶","🥳","😈","🤠","🤓","🥸","😺","🙈","💩","🫶","🧠"];
 const CATEGORIES = ["Mieszane","Filmy i seriale","Gry","Jedzenie","Zwierzęta","Przedmioty","Postacie","Internet / memy","Sport","Muzyka","Marki","Polska","Technologia","Social media","Popularne teraz"];
+const SESSION_KEY = "czolko-room-session-v1";
+const clearSavedSession = () => { try { localStorage.removeItem(SESSION_KEY); } catch {} };
+const getSavedSession = () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+    const invitedCode = new URLSearchParams(window.location.search).get("room")?.toUpperCase();
+    if (!saved || !/^[A-Z0-9]{5,6}$/.test(saved.code) || typeof saved.token !== "string") return null;
+    if (invitedCode && invitedCode !== saved.code) return null;
+    return saved;
+  } catch { return null; }
+};
 
 function App() {
   const [screen, setScreen] = useState("home");
+  const [restoring, setRestoring] = useState(() => !!getSavedSession());
+  const [revealedWord, setRevealedWord] = useState(null);
   const [theme, setTheme] = useState(() => {
     try { return localStorage.getItem("nie-wiem-theme") || "amethyst"; } catch { return "amethyst"; }
   });
@@ -50,6 +63,43 @@ function App() {
   const audioRef = useRef(null);
   const audioContextRef = useRef(null);
   const previousGameState = useRef(null);
+
+  useEffect(() => {
+    const saved = getSavedSession();
+    if (!saved || !supabase) { setRestoring(false); return; }
+    let alive = true;
+    const restore = async () => {
+      const { data, error } = await supabase.rpc("get_game_state", { p_code: saved.code, p_token: saved.token });
+      if (!alive) return;
+      if (!error && data?.players?.some(p => p.is_me)) {
+        setCode(saved.code);
+        setName(saved.name || "");
+        setRoom(saved.code);
+        setToken(saved.token);
+        setState(data);
+        previousGameState.current = data;
+        setScreen("room");
+      } else {
+        if (error && /Nie należysz do tego pokoju|Nie znaleziono pokoju/i.test(error.message)) {
+          clearSavedSession();
+          setNotice("Poprzedni pokój nie jest już dostępny.");
+        } else {
+          setNotice("Nie udało się teraz przywrócić pokoju. Odśwież stronę, żeby spróbować ponownie.");
+        }
+      }
+      setRestoring(false);
+    };
+    restore();
+    return () => { alive = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!revealedWord) return;
+    const timer = setTimeout(() => setRevealedWord(null), 7500);
+    const onKey = event => { if (event.key === "Escape") setRevealedWord(null); };
+    window.addEventListener("keydown", onKey);
+    return () => { clearTimeout(timer); window.removeEventListener("keydown", onKey); };
+  }, [revealedWord]);
 
   const toggleMusic = async () => {
     const audio = audioRef.current;
@@ -152,6 +202,11 @@ function App() {
     return { team, name: "Drużyna " + team, members, score: members.reduce((sum,p) => sum + p.score, 0), avatar: members[0]?.avatar || "👥" };
   }).filter(team => team.members.length).sort((a,b) => b.score - a.score || a.team.localeCompare(b.team));
   const myTeam = state?.game_mode === "teams" ? teamLeaderboard.find(t => t.team === me?.team) : null;
+  const teamsReady = state?.game_mode !== "teams" || (
+    state.players.every(p => p.team === "A" || p.team === "B") &&
+    state.players.some(p => p.team === "A") &&
+    state.players.some(p => p.team === "B")
+  );
 
   useEffect(() => {
     if (!room || !token || !supabase) return;
@@ -159,8 +214,20 @@ function App() {
     const refresh = async () => {
       const { data, error } = await supabase.rpc("get_game_state", { p_code: room, p_token: token });
       if (!alive) return;
-      if (error) setError(error.message);
-      else { setState(data); setError(""); }
+      if (error) {
+        if (/Nie należysz do tego pokoju|Nie znaleziono pokoju/i.test(error.message)) {
+          clearSavedSession();
+          previousGameState.current = null;
+          setState(null);
+          setRoom("");
+          setToken("");
+          setScreen("home");
+          setRevealedWord(null);
+          setError("Nie masz już dostępu do tego pokoju — możliwe, że gospodarz Cię usunął.");
+        } else {
+          setError(error.message);
+        }
+      } else { setState(data); setError(""); }
     };
     refresh();
     const timer = setInterval(refresh, 1800);
@@ -177,7 +244,12 @@ function App() {
   };
 
   const enter = async (data) => {
-    try { localStorage.setItem("nie-wiem-avatar", avatar); } catch {}
+    try {
+      localStorage.setItem("nie-wiem-avatar", avatar);
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ code: data.code, token: data.token, name: name.trim() }));
+    } catch {}
+    previousGameState.current = null;
+    setState(null);
     const { error: avatarError } = await supabase.rpc("set_player_avatar", { p_code: data.code, p_token: data.token, p_avatar: avatar });
     if (avatarError) setError(avatarError.message);
     setCode(data.code);
@@ -201,6 +273,22 @@ function App() {
     playSfx("start");
     const data = await run("start_game", { p_code: room, p_token: token });
     if (data) setNotice(data.restarted ? "Nowa rozgrywka rozpoczęta! Powodzenia!" : "Gra rozpoczęta!");
+  };
+  const chooseTeam = async selectedTeam => {
+    if (busy || me?.team === selectedTeam) return;
+    const data = await run("choose_team", { p_code: room, p_token: token, p_team: selectedTeam });
+    if (data) {
+      setState(prev => prev ? ({ ...prev, players: prev.players.map(p => p.is_me ? { ...p, team: selectedTeam } : p) }) : prev);
+      setNotice("Wybrano drużynę " + selectedTeam + ".");
+    }
+  };
+  const kickPlayer = async player => {
+    if (busy || !window.confirm("Wyrzucić gracza „" + player.name + "” z pokoju?")) return;
+    const data = await run("kick_player", { p_code: room, p_token: token, p_player_id: player.id });
+    if (data) {
+      setState(prev => prev ? ({ ...prev, players: prev.players.filter(p => p.id !== player.id) }) : prev);
+      setNotice("Gracz „" + player.name + "” został usunięty z pokoju.");
+    }
   };
 const advance = async (correct, skipWord = false) => {
   if (!supabase) {
@@ -228,14 +316,29 @@ const advance = async (correct, skipWord = false) => {
 
   setNotice(data?.last_chance_used ? "OSTATNIA SZANSA! Możesz spróbować jeszcze raz — kolejka zostaje u Ciebie." : skipWord ? `Hasło pominięte. ${data?.points_deducted ? "-1 pkt" : "bez utraty punktu (masz 0 pkt)"} — dostajesz nowe hasło.` : correct ? `Hasło odgadnięte! +${data?.points_awarded || 1} pkt — dostajesz nowe hasło.` : "Przekazano kolejkę.");
 
+  if (skipWord && typeof data?.skipped_word === "string" && data.skipped_word.trim()) {
+    setRevealedWord({ word: data.skipped_word.trim(), pointsDeducted: !!data.points_deducted });
+  }
   if (correct) setCelebrate(true);
 };
   const leave = () => {
+    clearSavedSession();
+    previousGameState.current = null;
+    setRevealedWord(null);
     setScreen("home"); setRoom(""); setToken(""); setState(null); setError(""); setNotice("");
   };
 
   return <div className="app-shell">
     <audio ref={audioRef} src="/audio/lobby.mp3" loop preload="auto" />
+    {revealedWord && <div className="skipped-reveal-backdrop" role="dialog" aria-modal="true" aria-label="Odkryte pominięte hasło">
+      <div className="skipped-reveal-card">
+        <span className="skipped-reveal-eyebrow">👀 TO BYŁO TWOJE HASŁO</span>
+        <strong>{revealedWord.word}</strong>
+        <p>{revealedWord.pointsDeducted ? "Hasło pominięte · −1 punkt" : "Hasło pominięte · 0 punktów straty"}</p>
+        <button className="primary" onClick={() => setRevealedWord(null)}>Okej, już wiem! ✕</button>
+        <small>To hasło jest już nieaktualne. Nowe nadal pozostaje tajemnicą.</small>
+      </div>
+    </div>}
     {winnerCelebration && <div className="winner-celebration" role="status" aria-live="polite">
       <div className="winner-rays" aria-hidden="true"></div>
       <div className="winner-confetti" aria-hidden="true">{Array.from({length: 54}, (_, i) => <span key={i} style={{left: `${(i * 29) % 100}%`, animationDelay: `${(i % 12) * 55}ms`, transform: `rotate(${i * 37}deg)`}} />)}</div>
@@ -283,7 +386,8 @@ const advance = async (correct, skipWord = false) => {
       </div>
     </header>
     <main>
-      {screen === "home" && <section className="hero">
+      {restoring && <div className="panel loading restore-status" role="status">Przywracanie Twojego pokoju…</div>}
+      {!restoring && screen === "home" && <section className="hero">
         <div className="eyebrow"><span className="pulse"></span> IMPREZOWA GRA MULTIPLAYER</div>
         <h1>Wiesz wszystko.<br/><em>Oprócz swojego hasła.</em></h1>
         <p className="intro">Dołącz do znajomych, zobacz ich hasła i spróbuj odkryć, kim lub czym jesteś.</p>
@@ -348,7 +452,7 @@ const advance = async (correct, skipWord = false) => {
         <div className="how"><span>01 / UTWÓRZ POKÓJ</span><span>02 / ZAPROŚ ZNAJOMYCH</span><span>03 / ZADAWAJ PYTANIA</span></div>
       </section>}
 
-      {screen === "room" && <section className="room-wrap">
+      {!restoring && screen === "room" && <section className="room-wrap">
         <div className="room-heading"><div><div className="eyebrow">POKÓJ GRY</div><h1>{state?.status === "finished" ? "Mamy zwycięzcę!" : state?.status === "playing" ? "Czas zgadywać." : "Ekipa się zbiera."}</h1></div>
           <div className="room-code"><span>{state?.game_mode === "teams" ? "TRYB DRUŻYNOWY" : "TRYB INDYWIDUALNY"} · {({easy:"ŁATWE",normal:"NORMALNE",hard:"TRUDNE"})[state?.modifiers?.difficulty] || "MIESZANE"} HASŁA · CEL: {state?.target_score || 3} PKT</span><span>KOD DOŁĄCZENIA</span><strong>{room}</strong><button onClick={()=>navigator.clipboard?.writeText(room)}>KOPIUJ KOD</button><button onClick={()=>navigator.clipboard?.writeText(window.location.origin + "/?room=" + encodeURIComponent(room))}>KOPIUJ LINK ↗</button></div>
         </div>
@@ -358,11 +462,23 @@ const advance = async (correct, skipWord = false) => {
           <div className="panel players-panel">
             <div className="section-head"><div><span className="eyebrow">UCZESTNICY</span><h2>Gracze <span className="count">{state.players.length}</span></h2></div><span className="status">{state.status === "finished" ? "KONIEC GRY" : state.status === "playing" ? "GRA W TOKU" : "OCZEKIWANIE"}</span></div>
             <div className="players-grid">{state.players.map((p,i)=><div className={"player "+(p.is_me?"is-me":"")+(state.status === "playing" && p.name === state.current_player_name ? " is-current":"")} key={p.id}>
-              <div className="avatar">{p.avatar || (p.name||"?").slice(0,1).toUpperCase()}</div><div className="player-info"><strong>{p.name} {p.is_me && <small>(TY)</small>}</strong><span>{p.score} pkt · {p.is_active ? "w grze" : "odgadł"}</span>{state.game_mode === "teams" && <small className={"team-tag team-"+p.team}>DRUŻYNA {p.team}</small>}</div>
+              <div className="avatar">{p.avatar || (p.name||"?").slice(0,1).toUpperCase()}</div><div className="player-info"><strong>{p.name} {p.is_me && <small>(TY)</small>}</strong><span>{p.score} pkt · {p.is_active ? "w grze" : "odgadł"}</span>{state.game_mode === "teams" && (p.team ? <small className={"team-tag team-"+p.team}>DRUŻYNA {p.team}</small> : <small className="team-tag team-unassigned">BEZ DRUŻYNY</small>)}</div>
               {p.is_me && myTurn && <span className="my-turn-tag">TWOJA KOLEJ</span>}
+              {isHost && !p.is_me && (state.status === "waiting" || state.status === "playing") && <button className="kick-player-button" type="button" disabled={busy || (state.status === "playing" && state.players.length <= 2)} onClick={() => kickPlayer(p)}>Wyrzuć</button>}
               {state.status !== "waiting" && p.is_active && <div className="word">{(state.game_mode === "teams" && p.team === me?.team) || p.is_me ? <><span className="question">?</span><small>{state.game_mode === "teams" ? "WASZE HASŁO" : "TWOJE HASŁO"}</small></> : <><strong>{p.word}</strong><small>{state.game_mode === "teams" ? "HASŁO DRUŻYNY" : "HASŁO GRACZA"}</small></>}</div>}
             </div>)}</div>
-            {state.status === "waiting" && <div className="lobby-footer"><p>{state.game_mode === "teams" ? "Tryb drużynowy: każda ekipa dostaje jedno wspólne hasło, którego nie widzi." : state.players.length < 3 ? "Najlepiej gra się w 3–8 osób. Możecie zacząć już od 2." : "Ekipa gotowa. Niech rozpocznie się zgadywanie."}</p>{isHost ? <button className="primary" disabled={busy || state.players.length < 2} onClick={start}>Rozpocznij grę <span>→</span></button> : <span className="waiting">Czekamy na gospodarza…</span>}</div>}
+            {state.status === "waiting" && state.game_mode === "teams" && <div className="team-choice-panel">
+              <div className="eyebrow">WYBIERZ SWOJĄ DRUŻYNĘ</div>
+              <p>Każdy wybiera ekipę, do której chce dołączyć. Możesz zmienić wybór do rozpoczęcia gry.</p>
+              <div className="team-choice-actions">
+                {["A", "B"].map(team => <button key={team} type="button" className={"team-choice-button team-choice-"+team+(me?.team === team ? " selected" : "")} aria-pressed={me?.team === team} disabled={busy} onClick={() => chooseTeam(team)}>
+                  <strong>{me?.team === team ? "✓ " : ""}Drużyna {team}</strong>
+                  <small>{state.players.filter(p => p.team === team).length} graczy</small>
+                </button>)}
+              </div>
+              {isHost && !teamsReady && <div className="team-choice-warning">Przed startem każdy musi wybrać drużynę, a w obu ekipach musi być co najmniej jedna osoba.</div>}
+            </div>}
+            {state.status === "waiting" && <div className="lobby-footer"><p>{state.game_mode === "teams" ? "Tryb drużynowy: każda ekipa dostaje jedno wspólne hasło, którego nie widzi." : state.players.length < 3 ? "Najlepiej gra się w 3–8 osób. Możecie zacząć już od 2." : "Ekipa gotowa. Niech rozpocznie się zgadywanie."}</p>{isHost ? <button className="primary" disabled={busy || state.players.length < 2 || !teamsReady} onClick={start}>Rozpocznij grę <span>→</span></button> : <span className="waiting">Czekamy na gospodarza…</span>}</div>}
           </div>
           {state.status === "playing" && <div className="panel turn-panel">
             <div className="eyebrow">AKTUALNA KOLEJKA</div>
@@ -394,7 +510,8 @@ const advance = async (correct, skipWord = false) => {
           <button className="text-button" onClick={leave}>← Opuść pokój</button>
         </>}
       </section>}
-      {error && screen === "home" && <div className="alert home-alert">{error}</div>}
+      {!restoring && error && screen === "home" && <div className="alert home-alert">{error}</div>}
+      {!restoring && notice && screen === "home" && <div className="notice home-alert">{notice}</div>}
     </main>
     <footer><span>Czółko<span className="brand-dot">.</span> — WERSJA TESTOWA</span><span>GRAJ FAIR. ŚMIEJ SIĘ GŁOŚNO.</span></footer>
   </div>;

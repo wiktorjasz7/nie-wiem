@@ -210,7 +210,7 @@ const advance = async (correct) => {
   setError("");
   setNotice("");
 
-  const { error } = await supabase.rpc("finish_turn", {
+  const { data, error } = await supabase.rpc("finish_turn", {
     p_code: room,
     p_token: token,
     p_correct: correct
@@ -223,11 +223,7 @@ const advance = async (correct) => {
     return;
   }
 
-  setNotice(
-    correct
-      ? "Hasło odgadnięte! Punkty dodane — dostajesz nowe hasło."
-      : "Przekazano kolejkę."
-  );
+  setNotice(data?.last_chance_used ? "OSTATNIA SZANSA! Możesz spróbować jeszcze raz — kolejka zostaje u Ciebie." : correct ? "Hasło odgadnięte! Punkty dodane — dostajesz nowe hasło." : "Przekazano kolejkę.");
 
   if (correct) setCelebrate(true);
 };

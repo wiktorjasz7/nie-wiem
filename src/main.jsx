@@ -35,7 +35,7 @@ function App() {
   const [difficulty, setDifficulty] = useState("normal");
   const [targetScore, setTargetScore] = useState(3);
   const [gameMode, setGameMode] = useState("individual");
-  const [modifiers, setModifiers] = useState({ double_points: false, chaos: false });
+  const [modifiers, setModifiers] = useState({ double_points: false, chaos: false, random_order: false });
   const [custom, setCustom] = useState("");
   const [room, setRoom] = useState("");
   const [token, setToken] = useState("");
@@ -293,6 +293,10 @@ function App() {
       setNotice("Gracz „" + player.name + "” został usunięty z pokoju.");
     }
   };
+const requestHint = async () => {
+  const data = await run("request_hint", { p_code: room, p_token: token });
+  if (data) setNotice(data.points_deducted ? "Podpowiedź: −1 pkt. Poproś innych o wskazówkę." : "Podpowiedź: brak utraty punktu (0 pkt).");
+};
 const castVote = async approved => {
   const data = await run("vote_guess", { p_code: room, p_token: token, p_approve: approved });
   if (!data) return;
@@ -466,6 +470,10 @@ const advance = async (correct, skipWord = false) => {
                   <label className={"modifier-option"+(modifiers.double_points?" selected":"")}><input type="checkbox" checked={modifiers.double_points} onChange={e=>setModifiers(v=>({...v,double_points:e.target.checked}))}/><span className="modifier-icon">✦</span><span><strong>Podwójne punkty</strong><small>Każde poprawne odgadnięcie daje 2 punkty.</small></span></label>
                   <label className={"modifier-option chaos-option"+(modifiers.chaos?" selected":"")}><input type="checkbox" checked={modifiers.chaos} onChange={e=>setModifiers(v=>({...v,chaos:e.target.checked}))}/><span className="modifier-icon">☄</span><span><strong>CHAOS</strong><small>Co 3 tury losuje się specjalne wydarzenie.</small></span></label>
                 </div>
+                <label className={"modifier-option random-order-option"+(modifiers.random_order?" selected":"")}>
+                  <input type="checkbox" checked={!!modifiers.random_order} onChange={e=>setModifiers(v=>({...v,random_order:e.target.checked}))}/>
+                  <span className="modifier-icon">🎲</span><span><strong>Losowa kolejność graczy</strong><small>Nowa kolejność przy każdym rozpoczęciu gry.</small></span>
+                </label>
                 {modifiers.chaos && <div className="chaos-pool"><strong>W PULI CHAOSU:</strong><span>Zakazane pytanie</span><span>Zmiana perspektywy</span><span>Królewski bonus</span><span>Ostatnia szansa</span><span>Błyskawica</span></div>}
               </div>
               <label>WŁASNE HASŁA <small>(opcjonalnie, oddziel przecinkami lub enterem; dostępne na każdym poziomie)</small></label>
@@ -490,6 +498,9 @@ const advance = async (correct, skipWord = false) => {
         </div>
         {error && <div className="alert">{error}</div>}
         {notice && <div className="notice">{notice}</div>}
+        {state?.event_text && state?.status !== "waiting" && <div className={"game-event-notice event-"+(state.event_kind||"info")} role="status" aria-live="polite">
+          <span className="game-event-label">📣 OSTATNIE WYDARZENIE</span><strong>{state.event_text}</strong>
+        </div>}
         {!state ? <div className="panel loading">Ładowanie pokoju...</div> : <>
           <div className="panel players-panel">
             <div className="section-head"><div><span className="eyebrow">UCZESTNICY</span><h2>Gracze <span className="count">{state.players.length}</span></h2></div><span className="status">{state.status === "finished" ? "KONIEC GRY" : state.status === "playing" ? "GRA W TOKU" : "OCZEKIWANIE"}</span></div>
@@ -527,7 +538,7 @@ const advance = async (correct, skipWord = false) => {
               </div> : <p className="guess-vote-wait">{vote.my_vote != null ? "Twój głos został zapisany. Czekamy na pozostałych." : "Czekamy na decyzję głosujących…"}</p>}
             </div>}
             {myTurn ? (votePending ? <div className="waiting-box">Trwa głosowanie nad Twoją odpowiedzią. Poczekaj na decyzję innych.</div> :
-              <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>{state.game_mode === "teams" ? "Odgadłem! Sprawdźcie odpowiedź" : "Odgadłem hasło! Głosowanie"}</button><button className="secondary" onClick={()=>advance(false)} disabled={busy}>Przekaż kolejkę →</button><button className="secondary skip-word-button" onClick={()=>advance(false, true)} disabled={busy}>Pomiń hasło <span>−1 pkt</span></button></div>) :
+              <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>{state.game_mode === "teams" ? "Odgadłem! Sprawdźcie odpowiedź" : "Odgadłem hasło! Głosowanie"}</button><button className="secondary" onClick={()=>advance(false)} disabled={busy}>Przekaż kolejkę →</button><button className="secondary skip-word-button" onClick={()=>advance(false, true)} disabled={busy}>Pomiń hasło <span>−1 pkt</span></button><button className="secondary hint-button" onClick={requestHint} disabled={busy || !!state.hint_used}>{state.hint_used ? "💡 Podpowiedź wykorzystana" : "💡 Poproś o podpowiedź −1 pkt"}</button></div>) :
               <div className="waiting-box">Teraz pytanie zadaje: <strong>{state.current_player_name}</strong></div>}
           </div>}
           {state.status === "finished" && <div className="panel results-panel">

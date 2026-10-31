@@ -252,7 +252,7 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
             </select>
             <label className="imp-hints-setting">
               <input type="checkbox" checked={hintsEnabled} onChange={e=>setHintsEnabled(e.target.checked)} />
-              <span><strong>Podpowiedzi dla impostora</strong><small>Impostor zobaczy kategorię, pierwszą literę i liczbę wyrazów hasła.</small></span>
+              <span><strong>Podpowiedzi dla impostora</strong><small>Impostor zobaczy jedno słowo będące skojarzeniem z tajnym hasłem.</small></span>
             </label>
             <button className="primary imp-full" onClick={createRoom} disabled={busy}>{busy?"Tworzenie…":"Utwórz pokój →"}</button>
           </section>
@@ -303,7 +303,7 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
             </div>
             {state.status==="waiting" && <div className="imp-lobby-hints">
               <div><strong>✦ Podpowiedzi dla impostora</strong>
-                <small>{state.hints_enabled ? "Włączone · kategoria, pierwsza litera i liczba wyrazów" : "Wyłączone · impostor nie otrzyma wskazówek"}</small>
+                <small>{state.hints_enabled ? "Włączone · jedno skojarzenie do hasła" : "Wyłączone · impostor nie otrzyma wskazówek"}</small>
               </div>
               {state.is_host && <label className="imp-hints-switch">
                 <input type="checkbox" checked={!!state.hints_enabled} disabled={busy}
@@ -327,10 +327,8 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
                 <h2>{state.role==="impostor"?"JESTEŚ IMPOSTOREM":"ZNASZ HASŁO"}</h2>
                 {state.role==="impostor"?<><p>Nie znasz hasła. Słuchaj skojarzeń i blefuj.</p>
                   {state.impostor_hint && <div className="imp-hint-card">
-                    <span>✦ TWOJE PODPOWIEDZI</span>
-                    <div><span>Kategoria: <strong>{state.impostor_hint.category}</strong></span>
-                      <span>Pierwsza litera: <strong>{state.impostor_hint.first_letter}</strong></span>
-                      <span>Wyrazów: <strong>{state.impostor_hint.word_count}</strong></span></div>
+                    <span>✦ TWOJA PODPOWIEDŹ</span>
+                    <strong className="imp-association-word">{state.impostor_hint}</strong>
                   </div>}
                 </>:<><div className="imp-secret-word">{state.secret_word}</div><p>Podaj skojarzenie, ale nie zdradzaj hasła wprost.</p></>}
                 <button className="imp-hide-role" onClick={()=>{setReveal(false);setGuessOpen(false);}}>Ukryj kartę ↑</button>
@@ -388,10 +386,8 @@ export default function ImpostorApp({ supabase, onBack, categories, avatars }) {
               ? "Gracze wskazali Cię poprawnie, ale możesz jeszcze wygrać. Odgadnij tajne hasło lub zrezygnuj z próby. Drobne literówki i brak polskich znaków są akceptowane."
               : "Wskazaliście "+(state.impostor_name||"impostora")+". Teraz ma jeszcze jedną szansę odgadnąć hasło. Jeśli się pomyli lub zrezygnuje, wygrywacie."}</p>
             {state.role==="impostor" && state.impostor_hint && <div className="imp-hint-card imp-final-hint">
-              <span>✦ TWOJE PODPOWIEDZI</span>
-              <div><span>Kategoria: <strong>{state.impostor_hint.category}</strong></span>
-                <span>Pierwsza litera: <strong>{state.impostor_hint.first_letter}</strong></span>
-                <span>Wyrazów: <strong>{state.impostor_hint.word_count}</strong></span></div>
+              <span>✦ TWOJA PODPOWIEDŹ</span>
+              <strong className="imp-association-word">{state.impostor_hint}</strong>
             </div>}
             {state.role==="impostor" ?
               <form onSubmit={makeGuess} className="imp-guess-form imp-final-guess-form">

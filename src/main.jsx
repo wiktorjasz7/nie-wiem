@@ -127,6 +127,7 @@ function App() {
   const me = state?.players?.find(p => p.is_me);
   const myTurn = state?.current_player_is_me === true;
   const isHost = state?.is_host;
+  const leaderboard = [...(state?.players || [])].sort((a,b) => b.score - a.score || a.seat - b.seat);
 
   useEffect(() => {
     if (!room || !token || !supabase) return;
@@ -269,7 +270,7 @@ const advance = async (correct) => {
       </section>}
 
       {screen === "room" && <section className="room-wrap">
-        <div className="room-heading"><div><div className="eyebrow">POKÓJ GRY</div><h1>{state?.status === "finished" ? "Koniec gry." : state?.status === "playing" ? "Czas zgadywać." : "Ekipa się zbiera."}</h1></div>
+        <div className="room-heading"><div><div className="eyebrow">POKÓJ GRY</div><h1>{state?.status === "finished" ? "Mamy zwycięzcę!" : state?.status === "playing" ? "Czas zgadywać." : "Ekipa się zbiera."}</h1></div>
           <div className="room-code"><span>KOD DOŁĄCZENIA</span><strong>{room}</strong><button onClick={()=>navigator.clipboard?.writeText(room)}>KOPIUJ KOD</button><button onClick={()=>navigator.clipboard?.writeText(window.location.origin + "/?room=" + encodeURIComponent(room))}>KOPIUJ LINK ↗</button></div>
         </div>
         {error && <div className="alert">{error}</div>}
@@ -290,7 +291,20 @@ const advance = async (correct) => {
             <p>{myTurn ? "Zadawaj pytania na głos. Pozostali gracze widzą Twoje hasło i odpowiadają TAK lub NIE. Możesz przekazać kolejkę albo spróbować odgadnąć hasło." : "Odpowiadaj TAK lub NIE na pytania aktualnego gracza. Twoja kolej nadejdzie później."}</p>
             {myTurn ? <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>Odgadłem hasło! +1 pkt</button><button className="secondary" onClick={()=>advance(false)} disabled={busy}>Przekaż kolejkę →</button></div> : <div className="waiting-box">Teraz pytanie zadaje: <strong>{state.current_player_name}</strong></div>}
           </div>}
-          {state.status === "finished" && <div className="panel turn-panel"><div className="eyebrow">GRA ZAKOŃCZONA</div><h2>{state.last_player_name ? `${state.last_player_name} nie odgadł hasła` : "Wszyscy odgadli hasła!"}</h2><p>Gratulacje dla zwycięzców! Wyniki są widoczne na liście graczy.</p></div>}
+          {state.status === "finished" && <div className="panel results-panel">
+            <div className="results-heading"><div className="eyebrow">🏆 GRA ZAKOŃCZONA</div><h2>TRZY HASŁA. JEDEN ZWYCIĘZCA.</h2><p><strong>{state.winner_name || state.last_player_name}</strong> zdobywa 3 punkty i wygrywa grę!</p></div>
+            <div className="podium">
+              {leaderboard.slice(0,3).map((p,i)=><div className={"podium-place place-"+(i+1)} key={p.id}>
+                <div className="podium-medal">{["🥇","🥈","🥉"][i]}</div>
+                <strong>{p.name}</strong><span>{p.score} {p.score === 1 ? "punkt" : p.score < 5 ? "punkty" : "punktów"}</span>
+                <div className="podium-block"><b>{i+1}</b></div>
+              </div>)}
+            </div>
+            <div className="final-scores"><div className="eyebrow">KOŃCOWA TABELA WYNIKÓW</div>
+              {leaderboard.map((p,i)=><div className="score-row" key={p.id}><span className="score-rank">{i+1}.</span><strong>{p.name}{p.is_me ? " (TY)" : ""}</strong><span>{p.score} pkt</span></div>)}
+            </div>
+            <p className="results-note">Dobra robota, ekipo. Rewanż? Opuść pokój i stwórzcie nowy!</p>
+          </div>}
           <button className="text-button" onClick={leave}>← Opuść pokój</button>
         </>}
       </section>}

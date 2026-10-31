@@ -6,7 +6,8 @@ import "./style.css";
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = url && key && !url.includes("TWOJ-PROJEKT") ? createClient(url, key) : null;
-const CATEGORIES = ["Mieszane", "Filmy i seriale", "Gry", "Jedzenie", "Zwierzęta", "Przedmioty", "Postacie", "Internet / memy"];
+const AVATARS = ["😎","🐼","🦊","🐱","🐻","🐨","🐯","🐙","👽","🤖","👻","🦄","🐧","🦁","🐲","🍄","⚡","🔥"];
+const CATEGORIES = ["Mieszane","Filmy i seriale","Gry","Jedzenie","Zwierzęta","Przedmioty","Postacie","Internet / memy","Sport","Muzyka","Marki","Polska","Technologia","Social media","Popularne teraz"];
 
 function App() {
   const [screen, setScreen] = useState("home");
@@ -14,6 +15,7 @@ function App() {
     try { return localStorage.getItem("nie-wiem-theme") || "amethyst"; } catch { return "amethyst"; }
   });
   const [name, setName] = useState("");
+  const [avatar, setAvatar] = useState(() => { try { return localStorage.getItem("nie-wiem-avatar") || "😎"; } catch { return "😎"; } });
   const [code, setCode] = useState(() => new URLSearchParams(window.location.search).get("room")?.toUpperCase() || "");
   const [category, setCategory] = useState("Mieszane");
   const [custom, setCustom] = useState("");
@@ -152,9 +154,12 @@ function App() {
     return data;
   };
 
-  const enter = (data) => {
+  const enter = async (data) => {
     setRoom(data.code); setToken(data.token); setScreen("room");
     setCode(data.code);
+    try { localStorage.setItem("nie-wiem-avatar", avatar); } catch {}
+    const { error: avatarError } = await supabase.rpc("set_player_avatar", { p_code: data.code, p_token: data.token, p_avatar: avatar });
+    if (avatarError) setError(avatarError.message);
   };
 
   const createRoom = async () => {
@@ -248,6 +253,8 @@ const advance = async (correct) => {
         <div className="panel home-panel">
           <label>TWÓJ NICK</label>
           <input value={name} onChange={e=>setName(e.target.value)} placeholder="np. Wiktor" maxLength={18}/>
+          <label className="avatar-picker-label">WYBIERZ AWATAR</label>
+          <div className="avatar-picker">{AVATARS.map(item => <button type="button" key={item} className={"avatar-choice"+(avatar===item?" selected":"")} aria-label={"Wybierz awatar "+item} aria-pressed={avatar===item} onClick={()=>setAvatar(item)}>{item}</button>)}</div>
           <div className="home-actions">
             <div className="action-card">
               <div className="action-icon">✦</div><h2>Stwórz pokój</h2><p>Ty jesteś gospodarzem. Zaproś ekipę kodem.</p>
@@ -279,7 +286,7 @@ const advance = async (correct) => {
           <div className="panel players-panel">
             <div className="section-head"><div><span className="eyebrow">UCZESTNICY</span><h2>Gracze <span className="count">{state.players.length}</span></h2></div><span className="status">{state.status === "finished" ? "KONIEC GRY" : state.status === "playing" ? "GRA W TOKU" : "OCZEKIWANIE"}</span></div>
             <div className="players-grid">{state.players.map((p,i)=><div className={"player "+(p.is_me?"is-me":"")+(state.status === "playing" && p.name === state.current_player_name ? " is-current":"")} key={p.id}>
-              <div className="avatar">{(p.name||"?").slice(0,1).toUpperCase()}</div><div className="player-info"><strong>{p.name} {p.is_me && <small>(TY)</small>}</strong><span>{p.score} pkt · {p.is_active ? "w grze" : "odgadł"}</span></div>
+              <div className="avatar">{p.avatar || (p.name||"?").slice(0,1).toUpperCase()}</div><div className="player-info"><strong>{p.name} {p.is_me && <small>(TY)</small>}</strong><span>{p.score} pkt · {p.is_active ? "w grze" : "odgadł"}</span></div>
               {p.is_me && myTurn && <span className="my-turn-tag">TWOJA KOLEJ</span>}
               {state.status !== "waiting" && p.is_active && <div className="word">{p.is_me ? <><span className="question">?</span><small>TWOJE HASŁO</small></> : <><strong>{p.word}</strong><small>HASŁO GRACZA</small></>}</div>}
             </div>)}</div>

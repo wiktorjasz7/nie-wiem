@@ -193,3 +193,15 @@ html[data-theme] .player.is-me.is-current{
 .podium-place.place-1 .podium-avatar{width:68px;height:68px;font-size:40px;border-radius:21px}
 @media(max-width:650px){.profile-setup{grid-template-columns:1fr}.avatar-side-panel{max-width:none}.avatar-picker{grid-template-columns:repeat(9,minmax(0,1fr))}.profile-preview{margin-top:12px}}
 @media(max-width:420px){.avatar-picker{grid-template-columns:repeat(6,minmax(0,1fr))}.avatar-choice{height:40px}}
+
+/* Dodatkowe palety CZÓŁKA */
+html[data-theme="cherry"]{--theme-accent:#f06b78;--theme-accent-light:#ffb4bb;--theme-accent-dark:#2b1016;--theme-accent-rgb:240,107,120;--theme-glow:#4a1e2b}
+html[data-theme="gold"]{--theme-accent:#e6bd55;--theme-accent-light:#ffe9a3;--theme-accent-dark:#29200d;--theme-accent-rgb:230,189,85;--theme-glow:#4a3a18}
+html[data-theme="mint"]{--theme-accent:#62d6b0;--theme-accent-light:#b2f5df;--theme-accent-dark:#10251f;--theme-accent-rgb:98,214,176;--theme-glow:#1c4b3c}
+html[data-theme="ice"]{--theme-accent:#7eaeea;--theme-accent-light:#c5dcff;--theme-accent-dark:#111d31;--theme-accent-rgb:126,174,234;--theme-glow:#233d65}
+html[data-theme="neon"]{--theme-accent:#c4f05c;--theme-accent-light:#e5ff9e;--theme-accent-dark:#20280d;--theme-accent-rgb:196,240,92;--theme-glow:#3a4c18}
+html[data-theme="coral"]{--theme-accent:#ff876d;--theme-accent-light:#ffc0ad;--theme-accent-dark:#2b1712;--theme-accent-rgb:255,135,109;--theme-glow:#51291f}
+html[data-theme="berry"]{--theme-accent:#c77be8;--theme-accent-light:#e6baff;--theme-accent-dark:#25132d;--theme-accent-rgb:199,123,232;--theme-glow:#432451}
+html[data-theme="teal"]{--theme-accent:#45c7b8;--theme-accent-light:#a0f2e7;--theme-accent-dark:#102522;--theme-accent-rgb:69,199,184;--theme-glow:#174b47}
+html[data-theme="blue"]{--theme-accent:#668cff;--theme-accent-light:#b8c8ff;--theme-accent-dark:#121b35;--theme-accent-rgb:102,140,255;--theme-glow:#24376b}
+html[data-theme="crimson"]{--theme-accent:#e34b5f;--theme-accent-light:#ffabb5;--theme-accent-dark:#2a1016;--theme-accent-rgb:227,75,95;--theme-glow:#501b27}

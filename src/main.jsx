@@ -27,6 +27,7 @@ function App() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [celebrate, setCelebrate] = useState(false);
+  const [winnerCelebration, setWinnerCelebration] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [musicSaved, setMusicSaved] = useState(() => {
     try { return localStorage.getItem("nie-wiem-music") === "on"; } catch { return false; }
@@ -75,20 +76,20 @@ function App() {
       if (!audioContextRef.current) audioContextRef.current = new AudioContextClass();
       const ctx = audioContextRef.current;
       if (ctx.state === "suspended") ctx.resume();
-      const notes = type === "point" ? [523, 659, 784] : type === "join" ? [440, 554] : [392];
+      const notes = type === "win" ? [523, 659, 784, 1047, 1319] : type === "point" ? [523, 659, 784] : type === "join" ? [440, 554] : [392];
       notes.forEach((frequency, index) => {
         const oscillator = ctx.createOscillator();
         const gain = ctx.createGain();
-        const start = ctx.currentTime + index * 0.105;
+        const start = ctx.currentTime + index * (type === "win" ? 0.14 : 0.105);
         oscillator.type = "sine";
         oscillator.frequency.setValueAtTime(frequency, start);
         gain.gain.setValueAtTime(0.0001, start);
         gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, sfxVolume * 0.11), start + 0.018);
-        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.19);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + (type === "win" ? 0.48 : 0.19));
         oscillator.connect(gain);
         gain.connect(ctx.destination);
         oscillator.start(start);
-        oscillator.stop(start + 0.2);
+        oscillator.stop(start + (type === "win" ? 0.5 : 0.2));
       });
     } catch {}
   };
@@ -113,8 +114,19 @@ function App() {
   }, [celebrate]);
 
   useEffect(() => {
+    if (!winnerCelebration) return;
+    const timer = setTimeout(() => setWinnerCelebration(false), 4600);
+    return () => clearTimeout(timer);
+  }, [winnerCelebration]);
+
+  useEffect(() => {
     if (!state) return;
     const previous = previousGameState.current;
+    if (previous?.status === "playing" && state.status === "finished") {
+      setWinnerCelebration(true);
+      playSfx("win");
+    }
+    if (previous?.status === "finished" && state.status === "playing") setWinnerCelebration(false);
     if (previous) {
       if (state.players.length > previous.players.length) playSfx("join");
       if (
@@ -217,6 +229,11 @@ const advance = async (correct) => {
 
   return <div className="app-shell">
     <audio ref={audioRef} src="/audio/lobby.mp3" loop preload="auto" />
+    {winnerCelebration && <div className="winner-celebration" role="status" aria-live="polite">
+      <div className="winner-rays" aria-hidden="true"></div>
+      <div className="winner-confetti" aria-hidden="true">{Array.from({length: 54}, (_, i) => <span key={i} style={{left: `${(i * 29) % 100}%`, animationDelay: `${(i % 12) * 55}ms`, transform: `rotate(${i * 37}deg)`}} />)}</div>
+      <div className="winner-card"><div className="winner-crown">♛</div><small>TAK SIĘ ZOSTAJE LEGENDĄ</small><strong>{state?.winner_name || state?.last_player_name || "Zwycięzca"}!</strong><span>🏆 ZWYCIĘSTWO 🏆</span></div>
+    </div>}
     {celebrate && <div className="celebration" role="status" aria-live="polite">
       <div className="confetti" aria-hidden="true">{Array.from({length: 22}, (_, i) => <span key={i} style={{left: `${(i * 37) % 100}%`, animationDelay: `${(i % 6) * 45}ms`, transform: `rotate(${i * 29}deg)`}} />)}</div>
       <div className="celebration-card"><span className="celebration-check">✓</span><strong>ODGADNIĘTE!</strong><small>+1 PUNKT · NOWE HASŁO</small></div>

@@ -20,6 +20,13 @@ function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [celebrate, setCelebrate] = useState(false);
+
+  useEffect(() => {
+    if (!celebrate) return;
+    const timer = setTimeout(() => setCelebrate(false), 1750);
+    return () => clearTimeout(timer);
+  }, [celebrate]);
 
   const me = state?.players?.find(p => p.is_me);
   const myTurn = state?.current_player_is_me === true;
@@ -70,13 +77,20 @@ function App() {
   };
   const advance = async (correct) => {
     const data = await run("finish_turn", { p_code: room, p_token: token, p_correct: correct });
-    if (data) setNotice(correct ? "Hasło odgadnięte! +1 punkt i dostajesz nowe hasło." : "Przekazano kolejkę.");
+    if (data) {
+      setNotice(correct ? "Hasło odgadnięte! +1 punkt i dostajesz nowe hasło." : "Przekazano kolejkę.");
+      if (correct) setCelebrate(true);
+    }
   };
   const leave = () => {
     setScreen("home"); setRoom(""); setToken(""); setState(null); setError(""); setNotice("");
   };
 
   return <div className="app-shell">
+    {celebrate && <div className="celebration" role="status" aria-live="polite">
+      <div className="confetti" aria-hidden="true">{Array.from({length: 22}, (_, i) => <span key={i} style={{left: `${(i * 37) % 100}%`, animationDelay: `${(i % 6) * 45}ms`, transform: `rotate(${i * 29}deg)`}} />)}</div>
+      <div className="celebration-card"><span className="celebration-check">✓</span><strong>ODGADNIĘTE!</strong><small>+1 PUNKT · NOWE HASŁO</small></div>
+    </div>}
     <header className="topbar">
       <button className="brand" onClick={leave}><span className="brand-mark">?</span><span>NIE WIEM<span className="brand-dot">.</span></span></button>
       <span className="top-tag">GRA TOWARZYSKA</span>
@@ -118,7 +132,7 @@ function App() {
         {!state ? <div className="panel loading">Ładowanie pokoju...</div> : <>
           <div className="panel players-panel">
             <div className="section-head"><div><span className="eyebrow">UCZESTNICY</span><h2>Gracze <span className="count">{state.players.length}</span></h2></div><span className="status">{state.status === "finished" ? "KONIEC GRY" : state.status === "playing" ? "GRA W TOKU" : "OCZEKIWANIE"}</span></div>
-            <div className="players-grid">{state.players.map((p,i)=><div className={"player "+(p.is_me?"is-me":"")} key={p.id}>
+            <div className="players-grid">{state.players.map((p,i)=><div className={"player "+(p.is_me?"is-me":"")+(state.status === "playing" && p.name === state.current_player_name ? " is-current":"")} key={p.id}>
               <div className="avatar">{(p.name||"?").slice(0,1).toUpperCase()}</div><div className="player-info"><strong>{p.name} {p.is_me && <small>(TY)</small>}</strong><span>{p.score} pkt · {p.is_active ? "w grze" : "odgadł"}</span></div>
               {state.status !== "waiting" && p.is_active && <div className="word">{p.is_me ? <><span className="question">?</span><small>TWOJE HASŁO</small></> : <><strong>{p.word}</strong><small>HASŁO GRACZA</small></>}</div>}
             </div>)}</div>

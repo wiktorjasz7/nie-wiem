@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { createClient } from "@supabase/supabase-js";
 import "./style.css";
@@ -21,12 +21,100 @@ function App() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [celebrate, setCelebrate] = useState(false);
+  const [musicEnabled, setMusicEnabled] = useState(false);
+  const [musicSaved, setMusicSaved] = useState(() => {
+    try { return localStorage.getItem("nie-wiem-music") === "on"; } catch { return false; }
+  });
+  const [musicVolume, setMusicVolume] = useState(() => {
+    try { return Number(localStorage.getItem("nie-wiem-music-volume") ?? 0.25); } catch { return 0.25; }
+  });
+  const [sfxVolume, setSfxVolume] = useState(() => {
+    try { return Number(localStorage.getItem("nie-wiem-sfx-volume") ?? 0.5); } catch { return 0.5; }
+  });
+  const audioRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const previousGameState = useRef(null);
+
+  const toggleMusic = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (musicEnabled) {
+      audio.pause();
+      setMusicEnabled(false);
+      setMusicSaved(false);
+      try { localStorage.setItem("nie-wiem-music", "off"); } catch {}
+      return;
+    }
+    audio.volume = musicVolume;
+    try {
+      await audio.play();
+      setMusicEnabled(true);
+      setMusicSaved(true);
+      try { localStorage.setItem("nie-wiem-music", "on"); } catch {}
+    } catch {
+      setError("Nie udało się odtworzyć muzyki. Sprawdź, czy plik public/audio/lobby.mp3 jest już w repozytorium.");
+    }
+  };
+
+  const playSfx = (type) => {
+    if (sfxVolume <= 0 || typeof window === "undefined") return;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    try {
+      if (!audioContextRef.current) audioContextRef.current = new AudioContextClass();
+      const ctx = audioContextRef.current;
+      if (ctx.state === "suspended") ctx.resume();
+      const notes = type === "point" ? [523, 659, 784] : type === "join" ? [440, 554] : [392];
+      notes.forEach((frequency, index) => {
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const start = ctx.currentTime + index * 0.105;
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(frequency, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, sfxVolume * 0.11), start + 0.018);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.19);
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+        oscillator.start(start);
+        oscillator.stop(start + 0.2);
+      });
+    } catch {}
+  };
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = musicVolume;
+    try { localStorage.setItem("nie-wiem-music-volume", String(musicVolume)); } catch {}
+  }, [musicVolume]);
+
+  useEffect(() => {
+    try { localStorage.setItem("nie-wiem-sfx-volume", String(sfxVolume)); } catch {}
+  }, [sfxVolume]);
+
+  useEffect(() => {
+    if (celebrate) playSfx("point");
+  }, [celebrate]);
 
   useEffect(() => {
     if (!celebrate) return;
     const timer = setTimeout(() => setCelebrate(false), 1750);
     return () => clearTimeout(timer);
   }, [celebrate]);
+
+  useEffect(() => {
+    if (!state) return;
+    const previous = previousGameState.current;
+    if (previous) {
+      if (state.players.length > previous.players.length) playSfx("join");
+      if (
+        state.status === "playing" &&
+        previous.current_player_name &&
+        state.current_player_name &&
+        previous.current_player_name !== state.current_player_name
+      ) playSfx("turn");
+    }
+    previousGameState.current = state;
+  }, [state]);
 
   const me = state?.players?.find(p => p.is_me);
   const myTurn = state?.current_player_is_me === true;
@@ -111,13 +199,27 @@ const advance = async (correct) => {
   };
 
   return <div className="app-shell">
+    <audio ref={audioRef} src="/audio/lobby.mp3" loop preload="auto" />
     {celebrate && <div className="celebration" role="status" aria-live="polite">
       <div className="confetti" aria-hidden="true">{Array.from({length: 22}, (_, i) => <span key={i} style={{left: `${(i * 37) % 100}%`, animationDelay: `${(i % 6) * 45}ms`, transform: `rotate(${i * 29}deg)`}} />)}</div>
       <div className="celebration-card"><span className="celebration-check">✓</span><strong>ODGADNIĘTE!</strong><small>+1 PUNKT · NOWE HASŁO</small></div>
     </div>}
     <header className="topbar">
       <button className="brand" onClick={leave}><span className="brand-mark">?</span><span>NIE WIEM<span className="brand-dot">.</span></span></button>
-      <span className="top-tag">GRA TOWARZYSKA</span>
+      <div className="topbar-tools">
+        <div className="audio-controls">
+          <button className="audio-toggle" onClick={toggleMusic}>
+            {musicEnabled ? "♫ Muzyka: ON" : musicSaved ? "♫ Wznów muzykę" : "♫ Włącz muzykę"}
+          </button>
+          <label className="audio-slider">MUZYKA
+            <input aria-label="Głośność muzyki" type="range" min="0" max="1" step="0.01" value={musicVolume} onChange={e=>setMusicVolume(Number(e.target.value))}/>
+          </label>
+          <label className="audio-slider">EFEKTY
+            <input aria-label="Głośność efektów dźwiękowych" type="range" min="0" max="1" step="0.01" value={sfxVolume} onChange={e=>setSfxVolume(Number(e.target.value))}/>
+          </label>
+        </div>
+        <span className="top-tag">GRA TOWARZYSKA</span>
+      </div>
     </header>
     <main>
       {screen === "home" && <section className="hero">

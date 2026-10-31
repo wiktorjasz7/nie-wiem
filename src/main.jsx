@@ -223,7 +223,7 @@ const advance = async (correct) => {
     return;
   }
 
-  setNotice(data?.last_chance_used ? "OSTATNIA SZANSA! Możesz spróbować jeszcze raz — kolejka zostaje u Ciebie." : correct ? "Hasło odgadnięte! Punkty dodane — dostajesz nowe hasło." : "Przekazano kolejkę.");
+  setNotice(data?.last_chance_used ? "OSTATNIA SZANSA! Możesz spróbować jeszcze raz — kolejka zostaje u Ciebie." : correct ? `Hasło odgadnięte! +${data?.points_awarded || 1} pkt — dostajesz nowe hasło.` : "Przekazano kolejkę.");
 
   if (correct) setCelebrate(true);
 };
@@ -240,7 +240,7 @@ const advance = async (correct) => {
     </div>}
     {celebrate && <div className="celebration" role="status" aria-live="polite">
       <div className="confetti" aria-hidden="true">{Array.from({length: 22}, (_, i) => <span key={i} style={{left: `${(i * 37) % 100}%`, animationDelay: `${(i % 6) * 45}ms`, transform: `rotate(${i * 29}deg)`}} />)}</div>
-      <div className="celebration-card"><span className="celebration-check">✓</span><strong>ODGADNIĘTE!</strong><small>+1 PUNKT · NOWE HASŁO</small></div>
+      <div className="celebration-card"><span className="celebration-check">✓</span><strong>ODGADNIĘTE!</strong><small>PUNKTY · NOWE HASŁO</small></div>
     </div>}
     <header className="topbar">
       <button className="brand" onClick={leave}><span className="brand-mark">?</span><span>CZÓŁKO<span className="brand-dot">.</span></span></button>
@@ -362,7 +362,8 @@ const advance = async (correct) => {
             <h2>{state.current_player_name || "Gracz"} {myTurn ? "— Twoja kolej!" : "zadaje pytanie"}</h2>
             {state.active_event && <div className={"chaos-event chaos-"+state.active_event}><span>☄ WYDARZENIE CHAOSU</span><strong>{{forbidden_question:"ZAKAZANE PYTANIE",perspective:"ZMIANA PERSPEKTYWY",kings_bonus:"KRÓLEWSKI BONUS",last_chance:"OSTATNIA SZANSA",lightning:"BŁYSKAWICA",swap:"ZAMIANA",cursed_word:"PRZEKLĘTE HASŁO",total_reset:"TOTALNY RESET"}[state.active_event]}</strong><p>{{forbidden_question:"Przez tę turę nie zaczynaj pytań od «Czy to…».",perspective:"Zadawaj pytania z zupełnie innej perspektywy.",kings_bonus:"Poprawne odgadnięcie daje podwójne punkty.",last_chance:"Jeśli przekażesz kolejkę, dostajesz jeszcze jedną próbę.",lightning:"Następne poprawne odgadnięcie daje podwójne punkty.",swap:"Kolejność kolejnych tur zostaje zaskakująco przetasowana.",cursed_word:"Po tej turze hasło zostanie przeklęte i zmienione.",total_reset:"Wszystkie hasła zostaną wylosowane od nowa."}[state.active_event]}</p></div>}
             <p>{myTurn ? <>Zadawaj pytania na głos. {state.game_mode === "teams" ? "Twoja drużyna wspólnie zgaduje jedno hasło, a przeciwnicy widzą je i odpowiadają TAK lub NIE." : "Pozostali gracze widzą Twoje hasło i odpowiadają TAK lub NIE."} Możesz przekazać kolejkę albo spróbować odgadnąć hasło.</> : "Odpowiadaj TAK lub NIE na pytania aktualnego gracza. Twoja kolej nadejdzie później."}</p>{state.game_mode === "teams" && <div className="team-score-strip">{teamLeaderboard.map(team=><span key={team.team} className={"team-progress team-"+team.team}><strong>{team.name}</strong><b>{team.score} / {state.target_score || 3} PKT</b></span>)}</div>}
-            {myTurn ? <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>{state.game_mode === "teams" ? "Odgadłem! +1 pkt dla drużyny" : "Odgadłem hasło! +1 pkt"}</button><button className="secondary" onClick={()=>advance(false)} disabled={busy || (state.modifiers?.limited_skips && (me?.skips_used || 0) >= 1)}>Przekaż kolejkę →</button></div> : <div className="waiting-box">Teraz pytanie zadaje: <strong>{state.current_player_name}</strong></div>}
+            {myTurn && state.modifiers?.limited_skips && <div className="skip-status">{(me?.skips_used || 0) < 1 ? "Masz jeszcze jedno darmowe pominięcie." : "Darmowe pominięcie wykorzystane — kolejne kosztuje 1 punkt."}</div>}
+            {myTurn ? <div className="turn-actions"><button className="primary" onClick={()=>advance(true)} disabled={busy}>{state.game_mode === "teams" ? "Odgadłem! Punkty dla drużyny" : "Odgadłem hasło! Punkty"}</button><button className="secondary" onClick={()=>advance(false)} disabled={busy || (state.modifiers?.limited_skips && (me?.skips_used || 0) >= 1)}>Przekaż kolejkę →</button></div> : <div className="waiting-box">Teraz pytanie zadaje: <strong>{state.current_player_name}</strong></div>}
           </div>}
           {state.status === "finished" && <div className="panel results-panel">
             <div className="results-heading"><div className="eyebrow">🏆 GRA ZAKOŃCZONA</div><h2>{state.game_mode === "teams" ? "ZWYCIĘSTWO DRUŻYNY!" : (state.target_score || 3) + " PUNKTÓW. JEDEN ZWYCIĘZCA."}</h2><p><strong>{state.winner_name || state.last_player_name}</strong> {state.game_mode === "teams" ? "zdobywa zwycięstwo dla całej ekipy!" : "zdobywa " + (state.target_score || 3) + " pkt i wygrywa grę!"}</p></div>

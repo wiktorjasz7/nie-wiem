@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { createClient } from "@supabase/supabase-js";
 import "./style.css";
 import ImpostorApp from "./impostor.jsx";
+import HeaderClock from "./HeaderClock.jsx";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -426,6 +427,7 @@ const advance = async (correct, skipWord = false) => {
       {screen === "home" && !restoring && <button className="hub-nav-link" onClick={onBack}>← GRY</button>}
       <button className="brand" onClick={leave}><span className="brand-mark">?</span><span>CZÓŁKO<span className="brand-dot">.</span></span></button>
       <div className="topbar-tools">
+        <HeaderClock />
         <label className="theme-picker">KOLORY
           <select className="theme-select" aria-label="Motyw kolorystyczny" value={theme} onChange={e=>setTheme(e.target.value)}>
             <option value="amethyst">💜 Amethyst</option>
@@ -670,6 +672,7 @@ function GamesHub({ onChoose }) {
     <header className="topbar">
       <div className="brand"><span className="brand-mark">✦</span><span>GRAJMY<span className="brand-dot">.</span></span></div>
       <span className="hub-top-label">DWIE GRY · JEDNA EKIPA</span>
+      <HeaderClock />
     </header>
     <main className="hub-main">
       <section className="hub-hero">

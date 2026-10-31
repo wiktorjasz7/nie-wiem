@@ -231,6 +231,16 @@ const advance = async (correct) => {
             <option value="rose">🌹 Rose</option>
             <option value="sunset">🔥 Sunset</option>
             <option value="midnight">🖤 Midnight</option>
+            <option value="cherry">🍒 Cherry</option>
+            <option value="gold">✨ Gold</option>
+            <option value="mint">🍃 Mint</option>
+            <option value="ice">🧊 Ice</option>
+            <option value="neon">💚 Neon</option>
+            <option value="coral">🪸 Coral</option>
+            <option value="berry">🫐 Berry</option>
+            <option value="teal">🩵 Teal</option>
+            <option value="blue">💠 Electric Blue</option>
+            <option value="crimson">❤️ Crimson</option>
           </select>
         </label>
         <div className="audio-controls">

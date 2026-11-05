@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import "./style.css";
 import ImpostorApp from "./impostor.jsx";
 import HeaderClock from "./HeaderClock.jsx";
+import HangmanApp from "./hangman.jsx";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -671,14 +672,14 @@ function GamesHub({ onChoose }) {
   return <div className="app-shell">
     <header className="topbar">
       <div className="brand"><span className="brand-mark">✦</span><span>GRAJMY<span className="brand-dot">.</span></span></div>
-      <span className="hub-top-label">DWIE GRY · JEDNA EKIPA</span>
+      <span className="hub-top-label">TRZY GRY · JEDNA EKIPA</span>
       <HeaderClock />
     </header>
     <main className="hub-main">
       <section className="hub-hero">
         <div className="eyebrow"><span className="pulse"/> GRAJ ZE ZNAJOMYMI</div>
         <h1>Wybierz grę. <em>Zacznijcie zabawę.</em></h1>
-        <p>Dwie gry imprezowe, jeden klimat. Stwórz pokój, wyślij link i grajcie na swoich telefonach lub komputerach.</p>
+        <p>Trzy gry imprezowe, jeden klimat. Stwórz pokój, wyślij link i grajcie na swoich telefonach lub komputerach.</p>
       </section>
       <section className="hub-grid" aria-label="Wybierz grę">
         <button className="hub-game" onClick={()=>onChoose("czolko")}>
@@ -695,6 +696,13 @@ function GamesHub({ onChoose }) {
           <p>Jedna osoba nie zna hasła. Podawajcie skojarzenia, głosujcie i odkryjcie, kto blefuje.</p>
           <span className="hub-go">Zagraj w IMPOSTORA <span aria-hidden="true">→</span></span>
         </button>
+        <button className="hub-game hg-hub-game" onClick={()=>onChoose("wisielec")}>
+          <span className="hub-id">03 / LITERA PO LITERZE</span>
+          <span className="hub-art" aria-hidden="true">🧩</span>
+          <h2>WISIELEC</h2>
+          <p>Jedno tajne hasło, cała ekipa. Odkrywajcie litery i wygrajcie przed siódmą pomyłką.</p>
+          <span className="hub-go">Zagraj w WISIELCA <span aria-hidden="true">→</span></span>
+        </button>
       </section>
       <p className="hub-footer-note">Bez pobierania · pokoje dla znajomych · każda osoba na własnym ekranie</p>
     </main>
@@ -705,14 +713,17 @@ function GamesHub({ onChoose }) {
 function Launcher() {
   const [active, setActive] = useState(() => {
     const q = new URLSearchParams(window.location.search);
+    if (q.has("wisielec")) return "wisielec";
     if (q.has("impostor")) return "impostor";
     if (q.has("room")) return "czolko";
     try {
+      if (sessionStorage.getItem("kminka-hangman-v1")) return "wisielec";
       if (sessionStorage.getItem("impostor-room-session-v1")) return "impostor";
       if (sessionStorage.getItem("czolko-room-session-v2")) return "czolko";
     } catch {}
     return "hub";
   });
+  if (active === "wisielec") return <HangmanApp supabase={supabase} onBack={()=>setActive("hub")} categories={CATEGORIES} />;
   if (active === "czolko") return <App onBack={()=>setActive("hub")} />;
   if (active === "impostor") return <ImpostorApp supabase={supabase} onBack={()=>setActive("hub")} categories={CATEGORIES} avatars={AVATARS} />;
   return <GamesHub onChoose={setActive}/>;
